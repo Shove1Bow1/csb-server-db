@@ -1,0 +1,38 @@
+version: '3'
+services:
+  mongo-csb:
+    image: mongo:jammy
+    container_name: mongo-csb
+    ports:
+      - 27018:27017
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:rw
+    networks:
+      - callspamblocker
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: csbtubui
+      MONGO_DATABASE: call-spam-blocker
+    restart: always
+  api-csb:
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8000:3000"
+    depends_on:
+      - mongo-csb
+    networks:
+      - callspamblocker
+    environment:
+      MONGOOSE_URI: mongodb://root:csbtubui@mongo-csb:27018/
+    container_name: api-csb
+    restart: unless-stopped
+volumes:
+  mongo-data:
+  mongo-config:
+networks:
+  callspamblocker:
+    driver: bridge
