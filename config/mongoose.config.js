@@ -5,6 +5,9 @@ try{
    if(mongoose.connection.readyState===1 || mongoose.connection.readyState===2){
         console.log('Mongodb connected');
    }
+   else{
+    console.log('Can not connect to mongodb')
+   }
 }
 catch(error){
     throw new Error('Bad connection');
