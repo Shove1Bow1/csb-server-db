@@ -1,15 +1,15 @@
-const { Schema,Model } = require('../config/mongoose.config')
+const { Schema,Model } = require('../../config/mongoose.config')
 const Account=new Schema({
     name:{
         type:String,
         name:"name"
     },
-    Password:{
+    password:{
         type: String,
         name:"password",
     }
 })
-const MobileCodesSchema=Model('MobileCodes',MobileCodes);
+const AccountSchema=Model('AccountSchema',Account);
 module.exports={
-    MobileCodesSchema
+    AccountSchema
 }

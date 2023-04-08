@@ -1,4 +1,4 @@
-export function ResponseMeta(message, status, err){
+function responseMeta(message, status, err){
     const meta={  
         status: status?status:200,
         message: message?message:'success',
@@ -7,4 +7,7 @@ export function ResponseMeta(message, status, err){
     return{
         meta
     }
+}
+module.exports={
+    responseMeta
 }
