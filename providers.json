@@ -1,0 +1,34 @@
+[
+    {
+        "_id":1,
+        "name": "Viettel",
+        "region":{
+            "regionName": "+84",
+            "regionCode":"VN"
+        }
+    },
+    {
+        "_id":2,
+        "name": "Mobilefone",
+        "region":{
+            "regionName": "+84",
+            "regionCode":"VN"
+        }
+    },
+    {
+        "_id":3,
+        "name": "Vinaphone",
+        "region":{
+            "regionName": "+84",
+            "regionCode":"VN"
+        }
+    },
+     {
+        "_id":4,
+        "name": "Mobilevn",
+        "region":{
+            "regionName": "+84",
+            "regionCode":"VN"
+        }
+    }
+]
