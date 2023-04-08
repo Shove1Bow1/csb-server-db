@@ -1,12 +1,12 @@
 const { Schema,Model } = require('../config/mongoose.config')
-const MobileCodes=new Schema({
-    Provider:{
+const Account=new Schema({
+    name:{
         type:String,
-        name:"provider_id"
+        name:"name"
     },
-    Code:{
+    Password:{
         type: String,
-        name:"code",
+        name:"password",
     }
 })
 const MobileCodesSchema=Model('MobileCodes',MobileCodes);
