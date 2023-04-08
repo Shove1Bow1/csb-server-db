@@ -25,13 +25,21 @@ async function checkAccount(req,res,next){
 }
 
 function checkNameAccount(req,res,next){
+    if(!req.body.name){
+        return res.status(400).send(
+            responsePresenter(
+                null,
+                responseMeta('Name not exist',400,HTTP_RESPONSE['400'])
+            )
+        )
+    }
     if(NAME_ACCOUNT_REGEX.test(req.body.name)){
         next();
     }
     return res.status(400).send(
         responsePresenter(
             null,
-            responseMeta('Name only have letters and numbers',400,HTTP_RESPONSE['400'])
+            responseMeta('Name only have letters or numbers',400,HTTP_RESPONSE['400'])
         )
     )
 }

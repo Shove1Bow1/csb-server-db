@@ -7,3 +7,5 @@ router.post('/admin',[checkNameAccount,checkAccount],(req,res)=>{
         {token: req.jwtToken}
     ));
 })
+
+module.exports=router;
