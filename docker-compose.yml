@@ -31,6 +31,8 @@ services:
       AUTHORIZATION_CODE: spambl0ckerAuthorization2k1rbyp0wer
     container_name: api-csb
     restart: unless-stopped
+    volumes:
+      - ../logs:/logs:rw
 volumes:
   mongo-data:
   mongo-config:

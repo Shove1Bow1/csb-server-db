@@ -8,17 +8,19 @@ const PhoneNumbers=new Schema({
     reportList:[{
         deviceCodeId:{
             type:String,
-            name:'deviceCodeId'
+            name:'deviceCodeId',
+            index:true
         },
         content:{
             type: String,
-            name:'content'
+            name:'content',
         },
         reportDate: {
             type:Date,
             default: new Date(),
-            name:'reportDate'
-        }
+            name:'reportDate',
+            index: true,
+        },
     }],
     phoneNumber:{
         type:String,

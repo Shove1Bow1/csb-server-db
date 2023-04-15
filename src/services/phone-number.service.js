@@ -32,6 +32,10 @@ async function getAllReportNumbers(req,res,next){
         res.status('400').send(error.message);
     }
 }
+
+async function getCurrentMonthReport(){
+    const currentDate= new Date();
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,

@@ -35,6 +35,7 @@ function checkJWTToken(req, res, next) {
             )
         )
 }
+
 module.exports = {
     checkAuthorization,
     checkJWTToken,
