@@ -4,3 +4,5 @@ public
 Dockerfile
 .git
 .gitignore
+docker-compose.yml
+.env.example

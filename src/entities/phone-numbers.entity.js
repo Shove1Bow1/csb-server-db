@@ -25,7 +25,8 @@ const PhoneNumbers=new Schema({
     phoneNumber:{
         type:String,
         length:7,
-        name:'phoneNumber'
+        name:'phoneNumber',
+        index: true
     },
     status:{
         type:String,

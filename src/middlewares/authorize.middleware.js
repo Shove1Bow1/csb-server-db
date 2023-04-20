@@ -24,7 +24,7 @@ function checkJWTToken(req, res, next) {
     if(jwt.verify(req.headers.token,JWT_KEY))
         next();
     else
-        res.status('400').send(
+        return res.status('400').send(
             responsePresenter(
                 null,
                 responseMeta(
@@ -33,7 +33,7 @@ function checkJWTToken(req, res, next) {
                     HTTP_RESPONSE['400']
                 )
             )
-        )
+        );
 }
 
 module.exports = {
