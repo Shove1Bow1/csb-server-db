@@ -5,7 +5,8 @@ const { getMobileCode } =require('../services/mobile-code.service');
 router.get('/reports',[checkAuthorization,getMobileCode,findAllReports],(req,res)=>{
     res.status('200').send(req.result);
 })
-router.get("/",[checkAuthorization,getAllReportNumbers],(req,res)=>{
-    res.status('200').send(req.result);
+router.get("/:mobileId",[checkAuthorization],(req,res)=>{
+    const {mobileId}=req.param;
+    return res.status('200').send(getMobileCode(mobileId));
 })
 module.exports=router;

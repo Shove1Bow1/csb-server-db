@@ -1,14 +1,12 @@
 const {MobileCodesSchema}= require('../entities/mobile-codes.entity');
 const mobileCodeSchema= MobileCodesSchema;
-async function getMobileCode(req,res,next){
+async function getMobileCode(mobileId){
     try{
-        const {mobile_id}=req.headers;
-        const mobile=await mobileCodeSchema.findOne({Code: mobile_id})|| "123";
+        const mobile=await mobileCodeSchema.findOne({Code: mobileId});
         if(!mobile)
             throw new Error('fuck you');
         else{
-            req.code=mobile.Code || "Hoang pro";
-            next();
+            return mobile.code;
         }
     }
     catch(error){
