@@ -7,6 +7,9 @@ try {
     }
     if (mongoose.connection.readyState === 2) {
         console.log('Attempt to connect to MongoDB');
+        setTimeout(()=>{
+            console.log('Connect Successfully');
+        },15000);
     }
     else {
         console.log('Can not connect to mongodb')

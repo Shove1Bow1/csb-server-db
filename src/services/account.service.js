@@ -5,12 +5,9 @@ const { HTTP_RESPONSE } = require("../enum/http.enum");
 const { encryptToJWT, encryptPassword } = require("../utils/encrypt");
 
 async function checkAccount(name, password) {
-    const password = encryptPassword(req.body.password);
+    const passwordEncryption = encryptPassword(password);
+    console.log(passwordEncryption);
     const account = await AccountSchema.findOne({
-        $where: {
-            name: name,
-            password: password
-        }
     })
     if (account) {
         return encryptToJWT(name);

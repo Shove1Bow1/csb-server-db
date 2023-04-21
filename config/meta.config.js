@@ -5,7 +5,7 @@ function responseMeta(message, status, err){
         error: err?err:'',
     }
     return{
-        meta
+        ...meta
     }
 }
 module.exports={
