@@ -1,3 +1,4 @@
+const { getQuanityReportInFiveMonth } = require("../aggregations/phone-numbers.aggreation");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
 async function findAllReports(phoneNumber, code) {
@@ -8,31 +9,40 @@ async function findAllReports(phoneNumber, code) {
                 MobileId: code,
             },
         })
-        .select('ReportList -_id');
+            .select('ReportList -_id');
         return result;
     }
     catch (error) {
         throw res.status('401').send(error);
     }
 }
-async function getAllReportNumbers(){
-    try{
-        const result=await phoneNumbersSchema.find({
-            where:{
+async function getAllReportNumbers() {
+    try {
+        const result = await phoneNumbersSchema.find({
+            where: {
                 status: "reported"
             }
         })
         return result;
     }
-    catch(error){
-       throw res.status('400').send(error.message);
+    catch (error) {
+        throw error;
     }
 }
 
-async function getCurrentMonthReport(){
-    const currentDate= new Date();
+async function getFiveMonthReport() {
+    try {
+        const result=await getQuanityReportInFiveMonth();
+        console.log(result);
+        return result;
+    }
+    catch (error) {
+        throw error;
+    }
 }
+
 module.exports = {
     findAllReports,
     getAllReportNumbers,
+    getFiveMonthReport,
 }

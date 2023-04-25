@@ -8,7 +8,6 @@ function encryptPassword(password){
     return cryptoPass;
 }
 function encryptToJWT(name){
-    console.log(JWT_KEY);
     const jwtEncryption= jwt.sign({
         name
     },JWT_KEY,{expiresIn:"1d"})

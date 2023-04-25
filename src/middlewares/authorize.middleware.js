@@ -16,13 +16,14 @@ function checkAuthorization(req, res, next) {
                 )
             )
         );
-    else
-        next();
+    next();
 }
 
 function checkJWTToken(req, res, next) {
-    if(jwt.verify(req.headers.token,JWT_KEY))
+
+    if (jwt.verify(String(req.headers.token), JWT_KEY)){
         next();
+    }
     else
         return res.status('400').send(
             responsePresenter(

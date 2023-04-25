@@ -6,7 +6,7 @@ function getFiveMonth() {
         month: curMonth,
         year: curYear,
     }]
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
         listMonth.push(calculateMonthYear(listMonth[i].month, listMonth[i].year))
     }
     return listMonth;
@@ -21,7 +21,7 @@ function calculateMonthYear(month, year) {
     lastMonth = Math.abs(lastMonth);
     return {
         month: lastMonth,
-        year: lastYear,
+        year: lastYear? lastYear: year,
     };
 }
 module.exports={
