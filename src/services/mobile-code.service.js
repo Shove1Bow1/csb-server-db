@@ -1,18 +1,18 @@
 const {MobileCodesSchema}= require('../entities/mobile-codes.entity');
 const mobileCodeSchema= MobileCodesSchema;
-async function getMobileCode(mobileId){
+async function getMobileCodeId(mobileCode){
     try{
-        const mobile=await mobileCodeSchema.findOne({Code: mobileId});
+        const mobile=await mobileCodeSchema.findOne({Code: mobileCode});
         if(!mobile)
             throw new Error('fuck you');
         else{
-            return mobile.code;
+            return mobile.providerId;
         }
     }
     catch(error){
-       return res.status('404').send(error.message);
+       return error;
     }
 }
 module.exports={
-    getMobileCode,
+    getMobileCodeId,
 }

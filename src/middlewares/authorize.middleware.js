@@ -11,8 +11,8 @@ function checkAuthorization(req, res, next) {
                 null,
                 responseMeta(
                     'Unauthorized token',
-                    400,
-                    HTTP_RESPONSE['400']
+                    401,
+                    HTTP_RESPONSE['401']
                 )
             )
         );
@@ -30,8 +30,8 @@ function checkJWTToken(req, res, next) {
                 null,
                 responseMeta(
                     'Unauthorized token',
-                    400,
-                    HTTP_RESPONSE['400']
+                    401,
+                    HTTP_RESPONSE['401']
                 )
             )
         );

@@ -1,4 +1,4 @@
-const { getQuanityReportInFiveMonth, getReportsByMonth } = require("../aggregations/phone-numbers.aggreation");
+const { getQuanityReportInFiveMonth, getReportsByMonth, getListReportsByPhoneNumber } = require("../aggregations/phone-numbers.aggreation");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
 async function findAllReports(phoneNumber, code) {
@@ -50,9 +50,19 @@ async function getReportsByMonthSer(month, year, page, limit){
         throw error;
     }
 }
+async function getReportsByPhoneNumber(mobileCodeId,phoneNumber, page, limit){
+    try{    
+        const reportsByPhoneNumber=await getListReportsByPhoneNumber(mobileCodeId,phoneNumber, page, limit);
+        return reportsByPhoneNumber? reportsByPhoneNumber : [];
+    }
+    catch(error){
+        throw error;
+    }
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
     getReportInFiveMonth,
-    getReportsByMonthSer
+    getReportsByMonthSer,
+    getReportsByPhoneNumber
 }

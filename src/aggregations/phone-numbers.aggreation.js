@@ -47,6 +47,9 @@ async function getReportsByMonth(month, year, page, limit) {
                 'year': {
                     '$year': '$reportList.reportDate'
                 },
+                'date': {
+                    '$dateOfMonth': '$reportList.reportDate'
+                },
                 'content': '$reportList.content',
                 'title': '$reportList.title'
             }
@@ -59,11 +62,58 @@ async function getReportsByMonth(month, year, page, limit) {
             '$skip': page
         }, {
             '$limit': limit
+        }, {
+            '$sort': {
+                'date': -1
+            }
         }
     ])
     return reportsByMonth;
 }
+async function getListReportsByPhoneNumber(mobileCodeId,phoneNumber, page, limit) {
+    const reportsByMonth = await PhoneNumbersSchema.aggregate([
+        {
+            '$match':{
+                'phoneNumber':phoneNumber,
+                'mobileCodeId': mobileCodeId
+            }
+        },
+        {
+            '$unwind': '$reportList'
+        }, {
+            '$project': {
+                'month': {
+                    '$month': '$reportList.reportDate'
+                },
+                'year': {
+                    '$year': '$reportList.reportDate'
+                },
+                'date': {
+                    '$dateOfMonth': '$reportList.reportDate'
+                },
+                'content': '$reportList.content',
+                'title': '$reportList.title',
+            }
+        }, {
+            '$match': {
+                'month': month,
+                'year': year
+            }
+        }, {
+            '$skip': page
+        }, {
+            '$limit': limit
+        }, {
+            '$sort': {
+                'date': -1
+            }
+        }
+    ])
+    return reportsByMonth;
+}
+
 module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,
+    getListReportsByPhoneNumber
 }

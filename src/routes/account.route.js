@@ -3,14 +3,15 @@ const { responsePresenter } = require('../../config/reponse.config');
 const { checkAccount } = require('../services/account.service');
 const { validateInputAccount } = require('../middlewares/validator.middleware');
 const { logError } = require('../../config/fs.config');
-const { AccountSchema } = require('../entities/account.entity');
+const { responseMeta } = require('../../config/meta.config');
 
 router.post('/login', [validateInputAccount], async (req, res) => {
     try {
         const {name,password}=req.body;
         const account = await checkAccount(name,password)
         return res.send(responsePresenter(
-            { token: account }
+            { token: account },
+            responseMeta()
         ));
     }
     catch (error) {
