@@ -6,7 +6,8 @@ var logger = require('morgan');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 
-var phoneNumbers=require('./routes/phone-number.route')
+var phoneNumbers=require('./src/routes/phone-number.route');
+var account=require('./src/routes/account.route');
 
 var app = express();
 
@@ -23,7 +24,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/phone-numbers', phoneNumbers);
-
+app.use('/admin',account);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
