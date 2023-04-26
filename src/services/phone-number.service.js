@@ -80,22 +80,28 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
     const existNumber = await PhoneNumbersSchema.find({
         phoneNumber,
         mobileCodeId,
+        reportList: {
+            deviceCodeId: deviceId
+        }
     })
     if (!existNumber) {
-        return await PhoneNumbersSchema.updateOne({
-            phoneNumber,
-            mobileCodeId,
-        }, {
-            $set: {
-                "reportList.$": {
-                    deviceCodeId: deviceId,
-                    title,
-                    content,
-                    reportDate: new Date()
-                },
-                "status":updateStatus(existNumber)
-            }
-        })
+        if (!existNumber.reportList[0]) {
+            return await PhoneNumbersSchema.updateOne({
+                phoneNumber,
+                mobileCodeId,
+            }, {
+                $set: {
+                    "reportList.$": {
+                        deviceCodeId: deviceId,
+                        title,
+                        content,
+                        reportDate: new Date()
+                    },
+                    "status": updateStatus(existNumber)
+                }
+            })
+        }
+        throw {message:'This device already reported number - conflict happen',status:'409'}
     }
     return await PhoneNumbersSchema.create({
         phoneNumber,
@@ -110,14 +116,14 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
         status: LIST_STATUS[0],
     })
 }
-async function updateStatus(existNumber){
-    const numberOfReports=await existNumber.reportList.length;
-    if(numberOfReports<REPORTED)
+async function updateStatus(existNumber) {
+    const numberOfReports = await existNumber.reportList.length;
+    if (numberOfReports < REPORTED)
         return LIST_STATUS[0];
-    if(numberOfReports>=REPORTED&&numberOfReports<SPAMMER){
+    if (numberOfReports >= REPORTED && numberOfReports < SPAMMER) {
         return LIST_STATUS[1];
     }
-    return LIST_STATUS[2]; 
+    return LIST_STATUS[2];
 }
 module.exports = {
     findAllReports,

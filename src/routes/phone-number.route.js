@@ -1,6 +1,6 @@
 const { router } = require('../../config/express-custom.config');
 const { checkAuthorization, checkJWTToken } = require('../middlewares/authorize.middleware');
-const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber, getCodeAndSevenNumber } = require('../services/phone-number.service');
+const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber, getCodeAndSevenNumber, createReport } = require('../services/phone-number.service');
 const { getMobileCode, getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage } = require('../middlewares/validator.middleware');
@@ -20,7 +20,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         ));
     }
     catch (error) {
-        logError(error, '/reports')
+        logError(error, '/reports \nmethod: GET')
         return res.send(
             responsePresenter(
                 null,
@@ -48,7 +48,7 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
         );
     }
     catch (error) {
-        logError(error, '/reports/:year/:month');
+        logError(error, '/reports/:year/:month \nmethod: GET');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
@@ -69,7 +69,7 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
         ));
     }
     catch (error) {
-        logError(error, ':phoneNumber/reports/');
+        logError(error, ':phoneNumber/reports/ \nmethod: GET');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
@@ -90,8 +90,10 @@ router.post('/:phoneNumber/reports',[checkAuthorization], async (req,res)=>{
             title,
             deviceId
         }
+        await createReport(report);
     }
     catch(error){
+        logError(error, ':phoneNumber/reports/ \nmethod: POST');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message,error.status,HTTP_RESPONSE[error.status])
