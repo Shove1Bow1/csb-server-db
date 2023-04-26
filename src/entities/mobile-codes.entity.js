@@ -1,5 +1,9 @@
 const { Schema,Model } = require('../../config/mongoose.config')
 const MobileCodes=new Schema({
+    _id:{
+        type: Number,
+        name:"_id"
+    },
     providerId:{
         type:Number,
         name:"providerId"

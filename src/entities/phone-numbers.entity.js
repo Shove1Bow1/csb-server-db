@@ -21,6 +21,10 @@ const PhoneNumbers=new Schema({
             name:'reportDate',
             index: true,
         },
+        title:{
+            type: String,
+            name: 'title',
+        }
     }],
     phoneNumber:{
         type:String,
