@@ -80,28 +80,30 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
     const existNumber = await PhoneNumbersSchema.find({
         phoneNumber,
         mobileCodeId,
-        reportList: {
-            deviceCodeId: deviceId
-        }
     })
-    if (!existNumber) {
-        if (!existNumber.reportList[0]) {
+    if (existNumber[0]) {
+        const deviceExist = await PhoneNumbersSchema.find({
+            phoneNumber,
+            mobileCodeId,
+            'reportList.deviceCodeId': deviceId
+        })
+        if (!deviceExist[0]) {
             return await PhoneNumbersSchema.updateOne({
                 phoneNumber,
                 mobileCodeId,
             }, {
-                $set: {
-                    "reportList.$": {
+                $set:{"status": await updateStatus(existNumber[0])},
+                $push: {
+                    reportList: {
                         deviceCodeId: deviceId,
                         title,
                         content,
-                        reportDate: new Date()
-                    },
-                    "status": updateStatus(existNumber)
-                }
+                        reportDate: new Date(),
+                    }
+                },
             })
         }
-        throw {message:'This device already reported number - conflict happen',status:'409'}
+        throw { message: 'This device already reported number - conflict happen', status: '409' }
     }
     return await PhoneNumbersSchema.create({
         phoneNumber,
@@ -116,10 +118,13 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
         status: LIST_STATUS[0],
     })
 }
+
 async function updateStatus(existNumber) {
     const numberOfReports = await existNumber.reportList.length;
-    if (numberOfReports < REPORTED)
-        return LIST_STATUS[0];
+    if (numberOfReports < REPORTED){
+         return LIST_STATUS[0];
+    }
+       
     if (numberOfReports >= REPORTED && numberOfReports < SPAMMER) {
         return LIST_STATUS[1];
     }

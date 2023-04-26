@@ -91,6 +91,7 @@ router.post('/:phoneNumber/reports',[checkAuthorization], async (req,res)=>{
             deviceId
         }
         await createReport(report);
+        return res.send("success");
     }
     catch(error){
         logError(error, ':phoneNumber/reports/ \nmethod: POST');
