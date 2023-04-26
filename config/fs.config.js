@@ -1,5 +1,5 @@
 const fs = require('fs');
-const logPath='../logs/error.txt'
+const logPath='../logs/error.txt';
 function logError(content, api) {
     const value = "\n\nError in " + content + "\nAPI " + api + "\nTime stamp " + (new Date()).getTime() + "\n\n";
     if (fs.existsSync(logPath)) {
@@ -12,4 +12,4 @@ function logError(content, api) {
 
 module.exports = {
     logError,
-}
+};

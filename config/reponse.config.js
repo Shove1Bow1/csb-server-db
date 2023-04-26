@@ -6,4 +6,4 @@ const responsePresenter=(data,err)=>{
 }
 module.exports={
     responsePresenter
-}
+};
