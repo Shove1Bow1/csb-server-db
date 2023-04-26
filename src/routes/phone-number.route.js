@@ -20,7 +20,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         ));
     }
     catch (error) {
-        logError(error,'/reports')
+        logError(error, '/reports')
         return res.send(
             responsePresenter(
                 null,
@@ -29,17 +29,19 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         );
     }
 })
-router.get('/reports/:year/:month',[checkJWTToken,validateQueryLimitPage],async (req,res)=>{
-    try{
-        const {month,year}=req.param;
-        const {page, limit}=req.query;
-        if(!month||!Number.isInteger(month)||!year||!Number.isInteger(year)){
+router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], async (req, res) => {
+    try {
+        const { month, year } = req.params;
+        const { page, limit } = req;
+        const monthNumber = Number(month);
+        const yearNumber = Number(year);
+        if (!month || !Number.isInteger(monthNumber) || !year || !Number.isInteger(yearNumber)) {
             return res.send(responsePresenter(
                 null,
                 responseMeta('Month is not a number', 400, HTTP_RESPONSE['400'])
             ));
         }
-        const listReportsByMonth=await getReportsByMonthSer(month,year,page,limit);
+        const listReportsByMonth = await getReportsByMonthSer(monthNumber, yearNumber, page, limit);
         return res.send(
             responsePresenter(
                 listReportsByMonth,
@@ -47,33 +49,32 @@ router.get('/reports/:year/:month',[checkJWTToken,validateQueryLimitPage],async 
             )
         )
     }
-    catch(error){
-        logError(error,'/reports/:year/:month')
+    catch (error) {
+        logError(error, '/reports/:year/:month')
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
         ))
     }
 })
-router.get(':phoneNumber/reports',[checkAuthorization, validateQueryLimitPage], async (req,res)=>{
-    try{
-        const {phoneNumber}=req.param;
-        const {page, limit}=req.query;
-        const stringPhone= String(phoneNumber);
-        if(!phoneNumber||stringPhone.length>10){
-            throw {message: "phoneNumber is not valid", status: "400"};
+router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage], async (req, res) => {
+    try {
+        const { phoneNumber } = req.params;
+        const { page, limit } = req;
+        if (!phoneNumber || phoneNumber.length > 10) {
+            throw { message: "phoneNumber is not valid", status: "400" };
         }
-        const mobileCode=stringPhone[0]+stringPhone[1]+stringPhone[2];
-        const sevenNumber=Promise.all(stringPhone.map((item,index)=>{if(index>=3) return item;}));
-        const mobileCodeId=getMobileCodeId(mobileCode);
-        const reports=await getReportsByPhoneNumber(mobileCodeId,sevenNumber,page,limit);
+        const mobileCode = phoneNumber[0] + phoneNumber[1] + phoneNumber[2];
+        const sevenNumber = phoneNumber[3] + phoneNumber[4] + phoneNumber[5] + phoneNumber[6] + phoneNumber[7] + phoneNumber[8] + phoneNumber[9];
+        const mobileCodeId = await getMobileCodeId(mobileCode);
+        const reports = await getReportsByPhoneNumber(mobileCodeId, sevenNumber, page, limit);
         return res.send(responsePresenter(
             reports,
             responseMeta()
         ))
     }
-    catch(error){
-        logError(error,':phoneNumber/reports/')
+    catch (error) {
+        logError(error, ':phoneNumber/reports/')
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])

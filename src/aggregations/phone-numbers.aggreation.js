@@ -48,7 +48,7 @@ async function getReportsByMonth(month, year, page, limit) {
                     '$year': '$reportList.reportDate'
                 },
                 'date': {
-                    '$dateOfMonth': '$reportList.reportDate'
+                    '$dayOfMonth': '$reportList.reportDate'
                 },
                 'content': '$reportList.content',
                 'title': '$reportList.title'
@@ -59,22 +59,23 @@ async function getReportsByMonth(month, year, page, limit) {
                 'year': year
             }
         }, {
-            '$skip': page
-        }, {
-            '$limit': limit
-        }, {
             '$sort': {
                 'date': -1
             }
+        }, {
+            '$skip': page * limit
+        }, {
+            '$limit': limit
         }
     ])
     return reportsByMonth;
 }
-async function getListReportsByPhoneNumber(mobileCodeId,phoneNumber, page, limit) {
+async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limit) {
+    console.log(mobileCodeId);
     const reportsByMonth = await PhoneNumbersSchema.aggregate([
         {
-            '$match':{
-                'phoneNumber':phoneNumber,
+            '$match': {
+                'phoneNumber': String(phoneNumber),
                 'mobileCodeId': mobileCodeId
             }
         },
@@ -89,25 +90,21 @@ async function getListReportsByPhoneNumber(mobileCodeId,phoneNumber, page, limit
                     '$year': '$reportList.reportDate'
                 },
                 'date': {
-                    '$dateOfMonth': '$reportList.reportDate'
+                    '$dayOfMonth': '$reportList.reportDate'
                 },
                 'content': '$reportList.content',
                 'title': '$reportList.title',
             }
-        }, {
-            '$match': {
-                'month': month,
-                'year': year
+        },{
+            '$sort': {
+                'date': -1,
+                'month':1
             }
-        }, {
-            '$skip': page
+        } , {
+            '$skip': page*limit
         }, {
             '$limit': limit
-        }, {
-            '$sort': {
-                'date': -1
-            }
-        }
+        }, 
     ])
     return reportsByMonth;
 }

@@ -34,12 +34,16 @@ function validateQueryLimitPage(req,res,next){
             responseMeta('Limit or Page not exists', 400, HTTP_RESPONSE['400'])
         ));
     }
-    if(!Number.isInteger(limit)||!Number.isInteger(page)){
+    const limitConvert=Number(limit);
+    const pageConvert=Number(page);
+    if(!Number.isInteger(limitConvert)||!Number.isInteger(pageConvert)){
         return res.send(responsePresenter(
             null,
             responseMeta('Limit or Page is not a number', 400, HTTP_RESPONSE['400'])
         ));
     }
+    req.limit=limitConvert;
+    req.page=pageConvert;
     next();
 }
 module.exports = {

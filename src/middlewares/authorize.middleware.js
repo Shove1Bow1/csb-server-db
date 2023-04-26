@@ -6,7 +6,7 @@ const { HTTP_RESPONSE } = require('../enum/http.enum')
 
 function checkAuthorization(req, res, next) {
     if (req.headers.authorization !== AUTHORIZATION_CODE)
-        return res.status('400').send(
+        return res.status('401').send(
             responsePresenter(
                 null,
                 responseMeta(
