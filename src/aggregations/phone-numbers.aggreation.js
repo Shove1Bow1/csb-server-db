@@ -3,7 +3,7 @@ const { getFiveMonth } = require('../utils/five-month');
 
 async function getQuanityReportInFiveMonth() {
     const fiveMonth = getFiveMonth();
-    const quanityReportFiveMonth = await Promise.all(fiveMonth.map(async (item) => {
+    const quanityReportFiveMonth = Promise.all(fiveMonth.map(async (item) => {
         const data = await PhoneNumbersSchema.aggregate([
             {
                 '$unwind': '$reportList'
@@ -31,7 +31,7 @@ async function getQuanityReportInFiveMonth() {
             year: item.year,
             total: reportQuannity ? reportQuannity.number : 0,
         }
-    }))
+    }));
     return quanityReportFiveMonth;
 }
 
@@ -71,7 +71,6 @@ async function getReportsByMonth(month, year, page, limit) {
     return reportsByMonth;
 }
 async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limit) {
-    console.log(mobileCodeId);
     const reportsByMonth = await PhoneNumbersSchema.aggregate([
         {
             '$match': {
@@ -105,7 +104,7 @@ async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limi
         }, {
             '$limit': limit
         }, 
-    ])
+    ]);
     return reportsByMonth;
 }
 
@@ -113,4 +112,4 @@ module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,
     getListReportsByPhoneNumber
-}
+};

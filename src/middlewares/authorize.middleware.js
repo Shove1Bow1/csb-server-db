@@ -21,10 +21,7 @@ function checkAuthorization(req, res, next) {
 
 function checkJWTToken(req, res, next) {
 
-    if (jwt.verify(String(req.headers.token), JWT_KEY)){
-        next();
-    }
-    else
+    if (!jwt.verify(String(req.headers.token), JWT_KEY)) {
         return res.status('400').send(
             responsePresenter(
                 null,
@@ -35,9 +32,11 @@ function checkJWTToken(req, res, next) {
                 )
             )
         );
+    }
+    next();
 }
 
 module.exports = {
     checkAuthorization,
     checkJWTToken,
-}
+};
