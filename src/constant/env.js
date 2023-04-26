@@ -6,4 +6,4 @@ const AUTHORIZATION_CODE = process.env.AUTHORIZATION_CODE;
 module.exports={
     JWT_KEY,
     AUTHORIZATION_CODE
-}
+};

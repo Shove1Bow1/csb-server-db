@@ -36,10 +36,7 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
         const monthNumber = Number(month);
         const yearNumber = Number(year);
         if (!month || !Number.isInteger(monthNumber) || !year || !Number.isInteger(yearNumber)) {
-            return res.send(responsePresenter(
-                null,
-                responseMeta('Month is not a number', 400, HTTP_RESPONSE['400'])
-            ));
+            throw responseMeta('Month is not a number', 400);
         }
         const listReportsByMonth = await getReportsByMonthSer(monthNumber, yearNumber, page, limit);
         return res.send(
@@ -47,14 +44,14 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
                 listReportsByMonth,
                 responseMeta()
             )
-        )
+        );
     }
     catch (error) {
-        logError(error, '/reports/:year/:month')
+        logError(error, '/reports/:year/:month');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
-        ))
+        ));
     }
 })
 router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage], async (req, res) => {
@@ -62,7 +59,7 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
         const { phoneNumber } = req.params;
         const { page, limit } = req;
         if (!phoneNumber || phoneNumber.length > 10) {
-            throw { message: "phoneNumber is not valid", status: "400" };
+            throw { message: "phone number is not valid", status: "400" };
         }
         const mobileCode = phoneNumber[0] + phoneNumber[1] + phoneNumber[2];
         const sevenNumber = phoneNumber[3] + phoneNumber[4] + phoneNumber[5] + phoneNumber[6] + phoneNumber[7] + phoneNumber[8] + phoneNumber[9];
@@ -71,14 +68,14 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
         return res.send(responsePresenter(
             reports,
             responseMeta()
-        ))
+        ));
     }
     catch (error) {
-        logError(error, ':phoneNumber/reports/')
+        logError(error, ':phoneNumber/reports/');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
-        ))
+        ));
     }
 })
 module.exports = router;

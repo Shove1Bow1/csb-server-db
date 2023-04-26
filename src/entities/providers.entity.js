@@ -1,4 +1,4 @@
-const { Schema,Model } = require('../../config/mongoose.config')
+const { Schema,Model } = require('../../config/mongoose.config');
 const Providers = new Schema({
     name: {
         type: String,
@@ -16,8 +16,8 @@ const Providers = new Schema({
             name:"regionCode"
         }
     }
-})
+});
 const ProvidersSchema=Model('providers',Providers);
 module.exports={
     ProvidersSchema,
-}
+};
