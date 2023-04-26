@@ -33,7 +33,7 @@ services:
     container_name: api-csb
     restart: unless-stopped
     volumes:
-      - ../logs:/logs:rw
+      - ../log-server-error/csb/:/logs:rw
 volumes:
   mongo-data:
   mongo-config:
