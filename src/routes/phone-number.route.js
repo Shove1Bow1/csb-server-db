@@ -1,6 +1,6 @@
 const { router } = require('../../config/express-custom.config');
 const { checkAuthorization, checkJWTToken } = require('../middlewares/authorize.middleware');
-const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber } = require('../services/phone-number.service');
+const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber, getCodeAndSevenNumber } = require('../services/phone-number.service');
 const { getMobileCode, getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage } = require('../middlewares/validator.middleware');
@@ -29,6 +29,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         );
     }
 })
+
 router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], async (req, res) => {
     try {
         const { month, year } = req.params;
@@ -54,15 +55,12 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
         ));
     }
 })
+
 router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage], async (req, res) => {
     try {
         const { phoneNumber } = req.params;
         const { page, limit } = req;
-        if (!phoneNumber || phoneNumber.length > 10) {
-            throw { message: "phone number is not valid", status: "400" };
-        }
-        const mobileCode = phoneNumber[0] + phoneNumber[1] + phoneNumber[2];
-        const sevenNumber = phoneNumber[3] + phoneNumber[4] + phoneNumber[5] + phoneNumber[6] + phoneNumber[7] + phoneNumber[8] + phoneNumber[9];
+        const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
         const mobileCodeId = await getMobileCodeId(mobileCode);
         const reports = await getReportsByPhoneNumber(mobileCodeId, sevenNumber, page, limit);
         return res.send(responsePresenter(
@@ -76,6 +74,28 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
         ));
+    }
+})
+
+router.post('/:phoneNumber/reports',[checkAuthorization], async (req,res)=>{
+    try{
+        const { phoneNumber } = req.params;
+        const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
+        const mobileCodeId = await getMobileCodeId(mobileCode);
+        const {content, title, deviceId}=req.body;
+        const report={
+            phoneNumber:sevenNumber,
+            mobileCodeId,
+            content,
+            title,
+            deviceId
+        }
+    }
+    catch(error){
+        return res.send(responsePresenter(
+            null,
+            responseMeta(error.message,error.status,HTTP_RESPONSE[error.status])
+        ))
     }
 })
 module.exports = router;
