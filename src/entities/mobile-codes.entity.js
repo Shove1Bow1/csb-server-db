@@ -1,4 +1,4 @@
-const { Schema,Model } = require('../../config/mongoose.config')
+const { Schema,Model } = require('../../config/mongoose.config');
 const MobileCodes=new Schema({
     _id:{
         type: Number,
@@ -12,8 +12,8 @@ const MobileCodes=new Schema({
         type: String,
         name:"code",
     }
-})
+});
 const MobileCodesSchema=Model('mobile_codes',MobileCodes);
 module.exports={
     MobileCodesSchema
-}
+};

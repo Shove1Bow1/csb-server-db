@@ -42,8 +42,8 @@ const PhoneNumbers=new Schema({
         default:false,
         name:'isDelete'
     }
-},{timestamps: true})
+},{timestamps: true});
 const PhoneNumbersSchema=Model('phone_numbers',PhoneNumbers);
 module.exports={
     PhoneNumbersSchema,
-}
+};

@@ -16,4 +16,4 @@ function logError(content, api) {
 
 module.exports = {
     logError,
-}
+};

@@ -1,5 +1,6 @@
 require('dotenv').config();
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const { logError } = require('./fs.config');
 try {
     mongoose.connect(process.env.MONGOOSE_URI, { dbName: 'call_spam_blocker' }).catch(error => { throw error });
     if (mongoose.connection.readyState === 1) {
@@ -12,11 +13,12 @@ try {
         },15000);
     }
     else {
-        console.log('Can not connect to mongodb')
+        console.log('Can not connect to mongodb');
     }
 }
 catch (error) {
-    throw new Error('Bad connection');
+    logError(error,'Config Mongodb');
+    throw new error;
 }
 
 const Schema = mongoose.Schema;
@@ -24,4 +26,4 @@ const Model = mongoose.model;
 module.exports = {
     Schema,
     Model
-}
+};

@@ -15,4 +15,4 @@ async function getMobileCodeId(mobileCode){
 }
 module.exports={
     getMobileCodeId,
-}
+};

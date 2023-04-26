@@ -1,4 +1,4 @@
-const { Schema,Model } = require('../../config/mongoose.config')
+const { Schema,Model } = require('../../config/mongoose.config');
 const Account=new Schema({
     name:{
         type: String,
@@ -8,8 +8,8 @@ const Account=new Schema({
         type: String,
         name: "password",
     }
-},{timestamps:true})
+},{timestamps:true});
 const AccountSchema=Model('accounts', Account);
 module.exports={
     AccountSchema
-}
+};

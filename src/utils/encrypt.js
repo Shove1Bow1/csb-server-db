@@ -10,11 +10,11 @@ function encryptPassword(password){
 function encryptToJWT(name){
     const jwtEncryption= jwt.sign({
         name
-    },JWT_KEY,{expiresIn:"1d"})
+    },JWT_KEY,{expiresIn:"1d"});
     return jwtEncryption;
 }
 
 module.exports={
     encryptPassword,
     encryptToJWT,
-}
+};

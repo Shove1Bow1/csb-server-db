@@ -65,4 +65,4 @@ module.exports = {
     getReportInFiveMonth,
     getReportsByMonthSer,
     getReportsByPhoneNumber
-}
+};
