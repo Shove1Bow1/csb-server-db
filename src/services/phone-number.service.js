@@ -1,5 +1,5 @@
-const { getQuanityReportInFiveMonth, getReportsByMonth, getListReportsByPhoneNumber } = require("../aggregations/phone-numbers.aggreation");
-const { LIST_STATUS, REPORTED, SPAMMER } = require("../constant/value");
+const { getQuanityReportInFiveMonth, getReportsByMonth, getListReportsByPhoneNumber, getListSpammerAgg } = require("../aggregations/phone-numbers.aggreation");
+const { LIST_STATUS, SCAMMER, POTENTIAL_SCAMMER } = require("../constant/value");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
 
@@ -120,15 +120,19 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
 }
 
 async function updateStatus(existNumber) {
-    const numberOfReports = await existNumber.reportList.length;
-    if (numberOfReports < REPORTED){
+    const numberOfReports = await existNumber.reportList.length+1;
+    if (await numberOfReports < POTENTIAL_SCAMMER){
          return LIST_STATUS[0];
     }
-       
-    if (numberOfReports >= REPORTED && numberOfReports < SPAMMER) {
+    if (await numberOfReports >= POTENTIAL_SCAMMER && await numberOfReports < SCAMMER) {
         return LIST_STATUS[1];
     }
     return LIST_STATUS[2];
+}
+
+async function getListSpammer(){
+    const result= await getListSpammerAgg();
+    return result? result: {};
 }
 module.exports = {
     findAllReports,
@@ -137,5 +141,6 @@ module.exports = {
     getReportsByMonthSer,
     getReportsByPhoneNumber,
     getCodeAndSevenNumber,
-    createReport
+    createReport,
+    getListSpammer
 };
