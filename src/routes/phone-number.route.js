@@ -1,16 +1,21 @@
 const { router } = require('../../config/express-custom.config');
-const { checkAuthorization, checkJWTToken } = require('../middlewares/authorize.middleware');
-const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber, getCodeAndSevenNumber, createReport } = require('../services/phone-number.service');
-const { getMobileCode, getMobileCodeId } = require('../services/mobile-code.service');
+const { checkAuthorization,
+    checkJWTToken } = require('../middlewares/authorize.middleware');
+const { findAllReports,
+    getAllReportNumbers,
+    getReportInFiveMonth,
+    getReportsByMonthSer,
+    getReportsByPhoneNumber,
+    getCodeAndSevenNumber,
+    createReport } = require('../services/phone-number.service');
+const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
-const { validateQueryLimitPage } = require('../middlewares/validator.middleware');
+const { validateQueryLimitPage,
+    validateReportInput } = require('../middlewares/validator.middleware');
 const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
 
-// router.get('/reports', [checkAuthorization, getMobileCode, findAllReports], (req, res) => {
-//     res.status('200').send(req.result);
-// })
 router.get('/reports', [checkJWTToken], async (req, res) => {
     try {
         const chartFiveMonth = await getReportInFiveMonth();
@@ -77,7 +82,7 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
     }
 })
 
-router.post('/:phoneNumber/reports',[checkAuthorization], async (req,res)=>{
+router.post('/:phoneNumber/reports',[checkAuthorization,validateReportInput], async (req,res)=>{
     try{
         const { phoneNumber } = req.params;
         const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
