@@ -24,7 +24,7 @@ const PhoneNumbers=new Schema({
         title:{
             type: String,
             name: 'title',
-        }
+        },
     }],
     phoneNumber:{
         type:String,

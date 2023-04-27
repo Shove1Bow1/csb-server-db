@@ -107,7 +107,6 @@ async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limi
     ]);
     return reportsByMonth;
 }
-
 module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,
