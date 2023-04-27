@@ -24,7 +24,7 @@
     }
   ],
   "phoneNumber": "0823368",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 },{
   "_id": {
@@ -52,7 +52,7 @@
     }
   ],
   "phoneNumber": "0800668",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 },{
   "_id": {
@@ -80,7 +80,7 @@
     }
   ],
   "phoneNumber": "0809908",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 },{
   "_id": {
@@ -108,7 +108,7 @@
     }
   ],
   "phoneNumber": "0809828",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 },{
   "_id": {
@@ -136,7 +136,7 @@
     }
   ],
   "phoneNumber": "0806028",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 },{
   "_id": {
@@ -164,6 +164,6 @@
     }
   ],
   "phoneNumber": "0802728",
-  "status": "reported",
+  "status": "potential-scammer",
   "isDelete": false
 }]
