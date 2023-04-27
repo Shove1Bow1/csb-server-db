@@ -70,6 +70,7 @@ async function getReportsByMonth(month, year, page, limit) {
     ])
     return reportsByMonth;
 }
+
 async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limit) {
     const reportsByMonth = await PhoneNumbersSchema.aggregate([
         {
@@ -106,6 +107,16 @@ async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limi
         }, 
     ]);
     return reportsByMonth;
+}
+
+async function getListSpammer(page,limit){
+    const scammerList=await PhoneNumbersSchema.aggregate([
+        {
+            $bucket:{
+                
+            }
+        }
+    ])
 }
 module.exports = {
     getQuanityReportInFiveMonth,

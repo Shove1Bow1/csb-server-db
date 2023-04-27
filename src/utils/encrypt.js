@@ -13,8 +13,12 @@ function encryptToJWT(name){
     },JWT_KEY,{expiresIn:"1d"});
     return jwtEncryption;
 }
-
+function encryptMobileDevice(deviceId){
+    const cryptoDevice= crypto.createHash('sha256').update(deviceId).digest('hex');
+    return cryptoDevice;
+}
 module.exports={
     encryptPassword,
     encryptToJWT,
+    encryptMobileDevice
 };
