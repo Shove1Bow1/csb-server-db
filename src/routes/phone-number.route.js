@@ -1,16 +1,21 @@
 const { router } = require('../../config/express-custom.config');
-const { checkAuthorization, checkJWTToken } = require('../middlewares/authorize.middleware');
-const { findAllReports, getAllReportNumbers, getReportInFiveMonth, getReportsByMonthSer, getReportsByPhoneNumber } = require('../services/phone-number.service');
-const { getMobileCode, getMobileCodeId } = require('../services/mobile-code.service');
+const { checkAuthorization,
+    checkJWTToken } = require('../middlewares/authorize.middleware');
+const { findAllReports,
+    getAllReportNumbers,
+    getReportInFiveMonth,
+    getReportsByMonthSer,
+    getReportsByPhoneNumber,
+    getCodeAndSevenNumber,
+    createReport } = require('../services/phone-number.service');
+const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
-const { validateQueryLimitPage } = require('../middlewares/validator.middleware');
+const { validateQueryLimitPage,
+    validateReportInput } = require('../middlewares/validator.middleware');
 const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
 
-// router.get('/reports', [checkAuthorization, getMobileCode, findAllReports], (req, res) => {
-//     res.status('200').send(req.result);
-// })
 router.get('/reports', [checkJWTToken], async (req, res) => {
     try {
         const chartFiveMonth = await getReportInFiveMonth();
@@ -20,7 +25,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         ));
     }
     catch (error) {
-        logError(error, '/reports')
+        logError(error, '/reports \nmethod: GET')
         return res.send(
             responsePresenter(
                 null,
@@ -29,6 +34,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         );
     }
 })
+
 router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], async (req, res) => {
     try {
         const { month, year } = req.params;
@@ -47,22 +53,19 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
         );
     }
     catch (error) {
-        logError(error, '/reports/:year/:month');
+        logError(error, '/reports/:year/:month \nmethod: GET');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
         ));
     }
 })
+
 router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage], async (req, res) => {
     try {
         const { phoneNumber } = req.params;
         const { page, limit } = req;
-        if (!phoneNumber || phoneNumber.length > 10) {
-            throw { message: "phone number is not valid", status: "400" };
-        }
-        const mobileCode = phoneNumber[0] + phoneNumber[1] + phoneNumber[2];
-        const sevenNumber = phoneNumber[3] + phoneNumber[4] + phoneNumber[5] + phoneNumber[6] + phoneNumber[7] + phoneNumber[8] + phoneNumber[9];
+        const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
         const mobileCodeId = await getMobileCodeId(mobileCode);
         const reports = await getReportsByPhoneNumber(mobileCodeId, sevenNumber, page, limit);
         return res.send(responsePresenter(
@@ -71,11 +74,36 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
         ));
     }
     catch (error) {
-        logError(error, ':phoneNumber/reports/');
+        logError(error, ':phoneNumber/reports/ \nmethod: GET');
         return res.send(responsePresenter(
             null,
             responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
         ));
+    }
+})
+
+router.post('/:phoneNumber/reports',[checkAuthorization,validateReportInput], async (req,res)=>{
+    try{
+        const { phoneNumber } = req.params;
+        const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
+        const mobileCodeId = await getMobileCodeId(mobileCode);
+        const {content, title, deviceId}=req.body;
+        const report={
+            phoneNumber:sevenNumber,
+            mobileCodeId,
+            content,
+            title,
+            deviceId
+        }
+        await createReport(report);
+        return res.send("success");
+    }
+    catch(error){
+        logError(error, ':phoneNumber/reports/ \nmethod: POST');
+        return res.send(responsePresenter(
+            null,
+            responseMeta(error.message,error.status,HTTP_RESPONSE[error.status])
+        ))
     }
 })
 module.exports = router;
