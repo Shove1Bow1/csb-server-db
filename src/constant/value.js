@@ -1,9 +1,9 @@
-const POTENTIAL_SCAMMER=5;
-const SCAMMER=100;
-const LIST_STATUS=['unknown','potential-scammer','scammer']
+const POTENTIAL_SPAMMER=5;
+const SPAMMER=100;
+const LIST_STATUS=['unknown','potential-spammer','spammer']
 
 module.exports={
-    POTENTIAL_SCAMMER,
-    SCAMMER,
+    POTENTIAL_SPAMMER,
+    SPAMMER,
     LIST_STATUS
 }

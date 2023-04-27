@@ -95,31 +95,50 @@ async function getListReportsByPhoneNumber(mobileCodeId, phoneNumber, page, limi
                 'content': '$reportList.content',
                 'title': '$reportList.title',
             }
-        },{
+        }, {
             '$sort': {
                 'date': -1,
-                'month':1
+                'month': 1
             }
-        } , {
-            '$skip': page*limit
+        }, {
+            '$skip': page * limit
         }, {
             '$limit': limit
-        }, 
+        },
     ]);
     return reportsByMonth;
 }
 
-async function getListSpammer(page,limit){
-    const scammerList=await PhoneNumbersSchema.aggregate([
+async function getListSpammerAgg() {
+    const spammerList = await PhoneNumbersSchema.aggregate([
         {
-            $bucket:{
-                
+            '$bucket': {
+                'groupBy': '$status',
+                'boundaries': [
+                    'scammer', 'unknown'
+                ],
+                'default': 'Other',
+                'output': {
+                    'phoneInfo': {
+                        '$push': {
+                            'phoneNumber': '$phoneNumber',
+                            'isInContact': false, 
+                            'isSpammer': true
+                        }
+                    }
+                }
+            }
+        }, {
+            '$match': {
+                '_id': 'scammer'
             }
         }
     ])
+    return spammerList[0];
 }
 module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,
-    getListReportsByPhoneNumber
+    getListReportsByPhoneNumber,
+    getListSpammerAgg
 };
