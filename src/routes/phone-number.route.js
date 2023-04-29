@@ -9,7 +9,8 @@ const { findAllReports,
     getCodeAndSevenNumber,
     createReport,
     getListSpammer, 
-    getTop10SpammerSer} = require('../services/phone-number.service');
+    getTop10SpammerSer,
+    suggestSearching} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -92,7 +93,7 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
             message = '';
             status = '500'
         }
-        logError(error, ':phoneNumber/reports/ \nmethod: GET');
+        logError(error, '/:phoneNumber/reports/ \nmethod: GET');
         return res.status(Number(status)).send(responsePresenter(
             null,
             responseMeta(HTTP_RESPONSE[status], status, message)
@@ -151,9 +152,9 @@ router.get('/spammers', [checkAuthorization], async (req, res) => {
             status = '500';
         }
         logError(error, '/spammer \nmethod: GET');
-        throw res.status(Number(error.status)).send(responsePresenter(
+        throw res.status(Number(status)).send(responsePresenter(
             null,
-            responseMeta(HTTP_RESPONSE[error.status], status, message)
+            responseMeta(HTTP_RESPONSE[status], status, message)
         ))
     }
 })
@@ -179,6 +180,37 @@ router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
             responsePresenter(
                 null,
                 responseMeta(HTTP_RESPONSE[error.status], status, message)
+            )
+        )
+    }
+})
+
+router.get('/:phoneNumber/suggest',[checkAuthorization], async (req, res)=>{
+    try{
+        const { phoneNumber } = req.params;
+        if(!phoneNumber || phoneNumber.length >= 10){
+            throw {message: 'phone number not exist',status:'400'};
+        }
+        const result=await suggestSearching(phoneNumber);
+        return res.send(
+            responsePresenter(
+                result,
+                responseMeta()
+            )
+        );
+    }
+    catch(error){
+        let { message, status } = error;
+        if (!status) {
+            message = '';
+            status = '500';
+        }
+        console.log(error);
+        logError(error, '/:phoneNumber/suggest \nmethod: GET');
+        return res.status(Number(status)).send(
+            responsePresenter(
+                null,
+                responseMeta(HTTP_RESPONSE[status], status, message)
             )
         )
     }

@@ -1,49 +1,52 @@
-const { Schema, Model}=require('../../config/mongoose.config');
-const PhoneNumbers=new Schema({
-    mobileCodeId:{
-        require:true,
+const { Schema, Model } = require('../../config/mongoose.config');
+const PhoneNumbers = new Schema({
+    mobileCodeId: {
+        require: true,
         type: Number,
-        name:'mobileCodeId'
+        name: 'mobileCodeId'
     },
-    reportList:[{
-        deviceCodeId:{
-            type:String,
-            name:'deviceCodeId',
-            index:true
-        },
-        content:{
+    reportList: [{
+        deviceCodeId: {
             type: String,
-            name:'content',
+            name: 'deviceCodeId',
+            index: true
+        },
+        content: {
+            type: String,
+            name: 'content',
         },
         reportDate: {
-            type:Date,
+            type: Date,
             default: new Date(),
-            name:'reportDate',
+            name: 'reportDate',
             index: true,
         },
-        title:{
+        title: {
             type: String,
             name: 'title',
         },
     }],
-    phoneNumber:{
-        type:String,
-        name:'phoneNumber',
+    phoneNumber: {
+        type: String,
+        name: 'phoneNumber',
         index: true
     },
-    status:{
-        type:String,
+    status: {
+        type: String,
         default: 'reported',
-        name:'status',
+        name: 'status',
         index: true
     },
-    isDelete:{
-        type:Boolean,
-        default:false,
-        name:'isDelete'
+    isDelete: {
+        type: Boolean,
+        default: false,
+        name: 'isDelete'
     }
-},{timestamps: true});
-const PhoneNumbersSchema=Model('phone_numbers',PhoneNumbers);
-module.exports={
+}, { timestamps: true });
+const PhoneNumbersSchema = Model('phone_numbers', PhoneNumbers);
+PhoneNumbersSchema.createIndexes({
+    phoneNumber: "text"
+})
+module.exports = {
     PhoneNumbersSchema,
 };
