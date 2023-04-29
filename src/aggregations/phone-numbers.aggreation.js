@@ -136,9 +136,54 @@ async function getListSpammerAgg() {
     ])
     return spammerList[0];
 }
+
+async function getTop10SpammerReports(){
+    const top10Spammer= await PhoneNumbersSchema.aggregate([
+        {
+          '$bucket': {
+            'groupBy': '$status', 
+            'boundaries': [
+              'spammer', 'unknown'
+            ], 
+            'default': 'unknown', 
+            'output': {
+              'phoneInfo': {
+                '$push': {
+                  'reportSize': {
+                    '$size': '$reportList'
+                  }, 
+                  'phoneNumber': '$phoneNumber'
+                }
+              }
+            }
+          }
+        }, {
+          '$match': {
+            '_id': 'spammer'
+          }
+        }, {
+          '$unwind': {
+            'path': '$phoneInfo'
+          }
+        }, {
+          '$sort': {
+            'phoneInfo.reportSize': -1
+          }
+        }, {
+          '$limit': 10
+        }, {
+          '$project': {
+            'phoneNumber': '$phoneInfo.phoneNumber'
+          }
+        }
+      ]
+    );
+    return top10Spammer;
+}
 module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,
     getListReportsByPhoneNumber,
-    getListSpammerAgg
+    getListSpammerAgg,
+    getTop10SpammerReports,
 };
