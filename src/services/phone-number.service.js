@@ -92,7 +92,7 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
                 phoneNumber,
                 mobileCodeId,
             }, {
-                $set:{"status": await updateStatus(existNumber[0])},
+                $set: { "status": await updateStatus(existNumber[0]) },
                 $push: {
                     reportList: {
                         deviceCodeId: deviceId,
@@ -120,9 +120,9 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
 }
 
 async function updateStatus(existNumber) {
-    const numberOfReports = await existNumber.reportList.length+1;
-    if (await numberOfReports < POTENTIAL_SCAMMER){
-         return LIST_STATUS[0];
+    const numberOfReports = await existNumber.reportList.length + 1;
+    if (await numberOfReports < POTENTIAL_SCAMMER) {
+        return LIST_STATUS[0];
     }
     if (await numberOfReports >= POTENTIAL_SCAMMER && await numberOfReports < SCAMMER) {
         return LIST_STATUS[1];
@@ -130,14 +130,21 @@ async function updateStatus(existNumber) {
     return LIST_STATUS[2];
 }
 
-async function getListSpammer(){
-    const result= await getListSpammerAgg();
-    return result? result: [];
+async function getListSpammer() {
+    const result = await getListSpammerAgg();
+    return result ? result : [];
 }
 
-async function getTop10SpammerSer(){
-    const result=await getTop10SpammerReports();
-    return result? result : [];
+async function getTop10SpammerSer() {
+    const result = await getTop10SpammerReports();
+    return result ? result : [];
+}
+
+async function suggestSearching(phoneNumber) {
+    const result = await PhoneNumbersSchema.find({
+        phoneNumber: new RegExp(phoneNumber,'i')
+    },{phoneNumber: 1, status: 1},{limit: 10})
+    return result? result:[];
 }
 module.exports = {
     findAllReports,
@@ -148,5 +155,6 @@ module.exports = {
     getCodeAndSevenNumber,
     createReport,
     getListSpammer,
-    getTop10SpammerSer
+    getTop10SpammerSer,
+    suggestSearching
 };

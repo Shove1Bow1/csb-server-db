@@ -8,7 +8,7 @@ const HTTP_RESPONSE = {
     '401': 'Unauthorized',
     '403': 'Forbidden',
     '409': 'Conflict',
-    "500": 'Interval Error Server'
+    '500': 'Interval Error Server'
 };
 
 module.exports = {
