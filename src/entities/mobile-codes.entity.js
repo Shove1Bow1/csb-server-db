@@ -11,6 +11,7 @@ const MobileCodes=new Schema({
     code:{
         type: String,
         name:"code",
+        index: true
     }
 });
 const MobileCodesSchema=Model('mobile_codes',MobileCodes);
