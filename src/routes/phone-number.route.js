@@ -7,7 +7,8 @@ const { findAllReports,
     getReportsByMonthSer,
     getReportsByPhoneNumber,
     getCodeAndSevenNumber,
-    createReport } = require('../services/phone-number.service');
+    createReport, 
+    getListSpammer} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -15,6 +16,7 @@ const { validateQueryLimitPage,
 const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
+const { encryptMobileDevice } = require('../utils/encrypt');
 
 router.get('/reports', [checkJWTToken], async (req, res) => {
     try {
@@ -25,6 +27,11 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
         ));
     }
     catch (error) {
+        let {message,status}=error;
+        if(!status){
+           message='';
+           status='500';
+        }
         logError(error, '/reports \nmethod: GET')
         return res.send(
             responsePresenter(
@@ -53,10 +60,15 @@ router.get('/reports/:year/:month', [checkJWTToken, validateQueryLimitPage], asy
         );
     }
     catch (error) {
+        let {message,status}=error;
+        if(!status){
+           message='';
+           status='500';
+        }
         logError(error, '/reports/:year/:month \nmethod: GET');
-        return res.send(responsePresenter(
+        return res.status(String(error.status)).send(responsePresenter(
             null,
-            responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
+            responseMeta(HTTP_RESPONSE[status], status, message)
         ));
     }
 })
@@ -68,16 +80,21 @@ router.get('/:phoneNumber/reports', [checkAuthorization, validateQueryLimitPage]
         const {sevenNumber, mobileCode}= getCodeAndSevenNumber(phoneNumber);
         const mobileCodeId = await getMobileCodeId(mobileCode);
         const reports = await getReportsByPhoneNumber(mobileCodeId, sevenNumber, page, limit);
-        return res.send(responsePresenter(
+        return res.status(String(error.status)).send(responsePresenter(
             reports,
             responseMeta()
         ));
     }
     catch (error) {
+        let {message,status}=error;
+        if(!status){
+           message='';
+           status='500'
+        }
         logError(error, ':phoneNumber/reports/ \nmethod: GET');
-        return res.send(responsePresenter(
+        return res.status(Number(status)).send(responsePresenter(
             null,
-            responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
+            responseMeta(HTTP_RESPONSE[status], status, message)
         ));
     }
 })
@@ -89,21 +106,54 @@ router.post('/:phoneNumber/reports',[checkAuthorization,validateReportInput], as
         const mobileCodeId = await getMobileCodeId(mobileCode);
         const {content, title, deviceId}=req.body;
         const report={
-            phoneNumber:sevenNumber,
-            mobileCodeId,
+            phoneNumber,
+            mobileCodeId: mobileCodeId,
             content,
             title,
-            deviceId
+            deviceId:encryptMobileDevice(deviceId)
         }
         await createReport(report);
-        return res.send("success");
+        return res.send(
+            responsePresenter(
+                'Create report success',
+                responseMeta()
+            )
+        );
     }
     catch(error){
+        let {message,status}=error;
+        if(!status){
+           message='';
+           status='500';
+        }
         logError(error, ':phoneNumber/reports/ \nmethod: POST');
-        return res.send(responsePresenter(
+        return res.status(Number(status)).send(responsePresenter(
             null,
-            responseMeta(error.message,error.status,HTTP_RESPONSE[error.status])
+            responseMeta(HTTP_RESPONSE[error.status],status,message)
         ))
+    }
+})
+
+router.get('/spammer',[checkAuthorization], async (req,res)=>{
+    try{
+        return res.send(
+            responsePresenter(
+                await getListSpammer(),
+                responseMeta()
+            )
+        );
+    }
+    catch(error){
+        let {message,status}=error;
+        if(!status){
+           message='';
+           status='500';
+        }
+        logError(error, '/spammer \nmethod: GET')
+        throw res.status(Number(error.status)).send(
+            null,
+            responseMeta(HTTP_RESPONSE[error.status],status,message)
+        )
     }
 })
 module.exports = router;
