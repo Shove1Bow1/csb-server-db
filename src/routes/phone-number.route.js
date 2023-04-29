@@ -8,7 +8,8 @@ const { findAllReports,
     getReportsByPhoneNumber,
     getCodeAndSevenNumber,
     createReport,
-    getListSpammer } = require('../services/phone-number.service');
+    getListSpammer, 
+    getTop10SpammerSer} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -159,7 +160,13 @@ router.get('/spammers', [checkAuthorization], async (req, res) => {
 
 router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
     try {
-
+        const result=await getTop10SpammerSer();
+        return res.send(
+            responsePresenter(
+                result,
+                responseMeta()
+            )
+        );
     }
     catch (error) {
         let { message, status } = error;
