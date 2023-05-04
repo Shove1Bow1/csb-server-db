@@ -6,7 +6,6 @@ const { encryptToJWT, encryptPassword } = require("../utils/encrypt");
 
 async function checkAccount(name, password) {
     const passwordEncryption = encryptPassword(password);
-    console.log(passwordEncryption);
     const account = await AccountSchema.findOne({
     })
     if (account) {
