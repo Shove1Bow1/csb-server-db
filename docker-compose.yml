@@ -18,12 +18,13 @@ services:
     restart: always
   api-csb:
     build: 
-      context: ./
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
       - mongo-csb
+      - redis-csb
     networks:
       - callspamblocker
     environment:
@@ -34,6 +35,14 @@ services:
     restart: unless-stopped
     volumes:
       - ../log-server-error/csb:/app/logs:rw
+  redis-csb:
+    image: redist:7.2-rc
+    container_name: redis-csb
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-data:/var/redis
+    ports:
+      
 volumes:
   mongo-data:
   mongo-config:
