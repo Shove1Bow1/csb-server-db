@@ -1,5 +1,5 @@
 const { getQuanityReportInFiveMonth, getReportsByMonth, getListReportsByPhoneNumber, getListSpammerAgg, getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
-const { LIST_STATUS, SCAMMER, POTENTIAL_SCAMMER } = require("../constant/value");
+const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
 
@@ -11,7 +11,7 @@ async function findAllReports(phoneNumber, code) {
                 MobileId: code,
             },
         })
-            .select('ReportList -_id');
+            .select('reportList -_id');
         return result;
     }
     catch (error) {
@@ -97,13 +97,12 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
                     reportList: {
                         deviceCodeId: deviceId,
                         title,
-                        content,
-                        reportDate: new Date(),
+                        content,                  reportDate: new Date(),
                     }
                 },
             })
         }
-        throw { message: 'This device already reported number - conflict happen', status: '409' }
+        throw { message: 'This device already reported this number - conflict happen', status: '409' }
     }
     return await PhoneNumbersSchema.create({
         phoneNumber,
@@ -121,10 +120,10 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
 
 async function updateStatus(existNumber) {
     const numberOfReports = await existNumber.reportList.length + 1;
-    if (await numberOfReports < POTENTIAL_SCAMMER) {
+    if (await numberOfReports < POTENTIAL_SPAMMER) {
         return LIST_STATUS[0];
     }
-    if (await numberOfReports >= POTENTIAL_SCAMMER && await numberOfReports < SCAMMER) {
+    if (await numberOfReports >= POTENTIAL_SPAMMER && await numberOfReports < SPAMMER) {
         return LIST_STATUS[1];
     }
     return LIST_STATUS[2];
@@ -146,6 +145,13 @@ async function suggestSearching(phoneNumber) {
     },{phoneNumber: 1, status: 1},{limit: 10})
     return result? result:[];
 }
+
+async function identicalCall(phoneNumber){
+    const result= await PhoneNumbersSchema.findOne({
+        phoneNumber
+    }).select('-reportList')
+    return result;
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -156,5 +162,6 @@ module.exports = {
     createReport,
     getListSpammer,
     getTop10SpammerSer,
-    suggestSearching
+    suggestSearching,
+    identicalCall
 };
