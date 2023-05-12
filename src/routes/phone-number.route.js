@@ -8,9 +8,9 @@ const { findAllReports,
     getReportsByPhoneNumber,
     getCodeAndSevenNumber,
     createReport,
-    getListSpammer, 
+    getListSpammer,
     getTop10SpammerSer,
-    suggestSearching} = require('../services/phone-number.service');
+    suggestSearching } = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -161,7 +161,7 @@ router.get('/spammers', [checkAuthorization], async (req, res) => {
 
 router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
     try {
-        const result=await getTop10SpammerSer();
+        const result = await getTop10SpammerSer();
         return res.send(
             responsePresenter(
                 result,
@@ -185,13 +185,13 @@ router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
     }
 })
 
-router.get('/:phoneNumber/suggest',[checkAuthorization], async (req, res)=>{
-    try{
+router.get('/:phoneNumber/suggest', [checkAuthorization], async (req, res) => {
+    try {
         const { phoneNumber } = req.params;
-        if(!phoneNumber || phoneNumber.length >= 10){
-            throw {message: 'phone number not exist',status:'400'};
+        if (!phoneNumber || phoneNumber.length >= 10) {
+            throw { message: 'phone number not exist', status: '400' };
         }
-        const result=await suggestSearching(phoneNumber);
+        const result = await suggestSearching(phoneNumber);
         return res.send(
             responsePresenter(
                 result,
@@ -199,7 +199,7 @@ router.get('/:phoneNumber/suggest',[checkAuthorization], async (req, res)=>{
             )
         );
     }
-    catch(error){
+    catch (error) {
         let { message, status } = error;
         if (!status) {
             message = '';
@@ -207,6 +207,29 @@ router.get('/:phoneNumber/suggest',[checkAuthorization], async (req, res)=>{
         }
         console.log(error);
         logError(error, '/:phoneNumber/suggest \nmethod: GET');
+        return res.status(Number(status)).send(
+            responsePresenter(
+                null,
+                responseMeta(HTTP_RESPONSE[status], status, message)
+            )
+        )
+    }
+})
+router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res) => {
+    try {
+        const { phoneNumber } = req.params;
+        if (!phoneNumber || phoneNumber.length !== 10) {
+            throw { message: 'phone number not exist', status: '400' };
+        }
+    }
+    catch (error) {
+        let { message, status } = error;
+        if (!status) {
+            message = '';
+            status = '500';
+        }
+        console.log(error);
+        logError(error, '/:phoneNumber/incoming-call \nmethod: GET');
         return res.status(Number(status)).send(
             responsePresenter(
                 null,
