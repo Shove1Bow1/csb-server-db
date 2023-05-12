@@ -97,13 +97,12 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
                     reportList: {
                         deviceCodeId: deviceId,
                         title,
-                        content,
-                        reportDate: new Date(),
+                        content,                  reportDate: new Date(),
                     }
                 },
             })
         }
-        throw { message: 'This device already reported number - conflict happen', status: '409' }
+        throw { message: 'This device already reported this number - conflict happen', status: '409' }
     }
     return await PhoneNumbersSchema.create({
         phoneNumber,
