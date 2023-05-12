@@ -94,7 +94,7 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
             'reportList.deviceCodeId': deviceId
         })
         if (!deviceExist[0]) {
-            setQueueReport(deviceId, title, content, reportDate, phoneNumber);
+            setQueueReport(deviceId, title, content, timeReport, phoneNumber);
             return await PhoneNumbersSchema.updateOne({
                 phoneNumber,
                 mobileCodeId,
@@ -165,7 +165,7 @@ async function identicalCall(phoneNumber) {
 async function setQueueReport(deviceId, title, content, reportDate, phoneNumber) {
     const reportKey = deviceId + phoneNumber;
     await client.connect();
-    if (await client.isReady()) {
+    if (client.isReady) {
         await client.set(reportKey, JSON.stringify({
             phoneNumber,
             content,
