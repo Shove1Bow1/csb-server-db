@@ -10,8 +10,8 @@ const { findAllReports,
     createReport,
     getListSpammer,
     getTop10SpammerSer,
-    suggestSearching, 
-    identicalCall} = require('../services/phone-number.service');
+    suggestSearching,
+    identicalCall } = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -223,8 +223,10 @@ router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res)
             throw { message: 'phone number not exist', status: '400' };
         }
         return res.send(
-            identicalCall(phoneNumber),
-            responseMeta(),
+            responsePresenter(
+                await identicalCall(phoneNumber),
+                responseMeta(),
+            )
         )
     }
     catch (error) {

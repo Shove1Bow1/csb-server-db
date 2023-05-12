@@ -147,7 +147,7 @@ async function suggestSearching(phoneNumber) {
 }
 
 async function identicalCall(phoneNumber){
-    const result= await PhoneNumbersSchema.find({
+    const result= await PhoneNumbersSchema.findOne({
         phoneNumber
     }).select('-reportList')
     return result;
