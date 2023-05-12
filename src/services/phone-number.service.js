@@ -1,4 +1,9 @@
-const { getQuanityReportInFiveMonth, getReportsByMonth, getListReportsByPhoneNumber, getListSpammerAgg, getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
+const { client } = require("../../config/redis.config");
+const { getQuanityReportInFiveMonth,
+        getReportsByMonth,
+        getListReportsByPhoneNumber,
+        getListSpammerAgg,
+        getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
 const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
@@ -81,6 +86,7 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
         phoneNumber,
         mobileCodeId,
     })
+    const timeReport = new Date();
     if (existNumber[0]) {
         const deviceExist = await PhoneNumbersSchema.find({
             phoneNumber,
@@ -88,6 +94,7 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
             'reportList.deviceCodeId': deviceId
         })
         if (!deviceExist[0]) {
+            setQueueReport(deviceId, title, content, reportDate, phoneNumber);
             return await PhoneNumbersSchema.updateOne({
                 phoneNumber,
                 mobileCodeId,
@@ -97,13 +104,15 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
                     reportList: {
                         deviceCodeId: deviceId,
                         title,
-                        content,                  reportDate: new Date(),
+                        content,
+                        reportDate: timeReport,
                     }
                 },
             })
         }
         throw { message: 'This device already reported this number - conflict happen', status: '409' }
     }
+    setQueueReport(deviceId, title, content, reportDate, phoneNumber);
     return await PhoneNumbersSchema.create({
         phoneNumber,
         mobileCodeId,
@@ -111,7 +120,7 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
             deviceCodeId: deviceId,
             title,
             content,
-            reportDate: new Date()
+            reportDate: timeReport
         }],
         isDelete: false,
         status: LIST_STATUS[0],
@@ -141,16 +150,35 @@ async function getTop10SpammerSer() {
 
 async function suggestSearching(phoneNumber) {
     const result = await PhoneNumbersSchema.find({
-        phoneNumber: new RegExp(phoneNumber,'i')
-    },{phoneNumber: 1, status: 1},{limit: 10})
-    return result? result:[];
+        phoneNumber: new RegExp(phoneNumber, 'i')
+    }, { phoneNumber: 1, status: 1 }, { limit: 10 })
+    return result ? result : [];
 }
 
-async function identicalCall(phoneNumber){
-    const result= await PhoneNumbersSchema.findOne({
+async function identicalCall(phoneNumber) {
+    const result = await PhoneNumbersSchema.findOne({
         phoneNumber
     }).select('-reportList')
     return result;
+}
+
+async function setQueueReport(deviceId, title, content, reportDate, phoneNumber) {
+    const reportKey = deviceId + phoneNumber;
+    await client.connect();
+    if (await client.isReady()) {
+        await client.set(reportKey, JSON.stringify({
+            phoneNumber,
+            content,
+            reportDate,
+            title
+        }))
+        await client.expire(reportKey, 1000 * 3600 * 24 * 7);
+        await client.disconnect();
+    }
+}
+
+async function rejectReport(phoneNumber) {
+
 }
 module.exports = {
     findAllReports,

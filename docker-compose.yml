@@ -31,21 +31,23 @@ services:
       MONGOOSE_URI: mongodb://root:csbtubui@mongo-csb:27017/
       AUTHORIZATION_CODE: spambl0ckerAuthorization2k1rbyp0wer
       JWT_KEY: c56v1llA8er
+      REDIS_URI: redis://localhost:6379
     container_name: api-csb
     restart: unless-stopped
     volumes:
       - ../log-server-error/csb:/app/logs:rw
   redis-csb:
-    image: redist:7.2-rc
+    image: redis:7.0.11
     container_name: redis-csb
     volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - redis-data:/var/redis
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data:rw
     ports:
-      
+      - "6379:6379"
 volumes:
   mongo-data:
   mongo-config:
+  redis-data:
 networks:
   callspamblocker:
     driver: bridge
