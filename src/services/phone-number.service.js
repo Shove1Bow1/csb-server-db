@@ -11,7 +11,7 @@ async function findAllReports(phoneNumber, code) {
                 MobileId: code,
             },
         })
-            .select('ReportList -_id');
+            .select('reportList -_id');
         return result;
     }
     catch (error) {
@@ -145,6 +145,13 @@ async function suggestSearching(phoneNumber) {
     },{phoneNumber: 1, status: 1},{limit: 10})
     return result? result:[];
 }
+
+async function identicalCall(phoneNumber){
+    const result= await PhoneNumbersSchema.findOne({
+        phoneNumber
+    }).select('-reportList')
+    return result;
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -155,5 +162,6 @@ module.exports = {
     createReport,
     getListSpammer,
     getTop10SpammerSer,
-    suggestSearching
+    suggestSearching,
+    identicalCall
 };
