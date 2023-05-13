@@ -1,23 +1,27 @@
-const { Schema,Model } = require('../../config/mongoose.config');
+const { Schema, Model } = require("../../config/mongoose.config");
 const Providers = new Schema({
-    name: {
-        type: String,
-        name: "name",
+  _id: {
+    type: Number,
+    name: "_id",
+  },
+  name: {
+    type: String,
+    name: "name",
+  },
+  region: {
+    regionName: {
+      type: String,
+      default: "VN",
+      name: "regionName",
     },
-    region: {
-        regionName: {
-            type: String,
-            default: 'VN',
-            name:"regionName"
-        },
-        regionCode: {
-            type: String,
-            default: '+84',
-            name:"regionCode"
-        }
-    }
+    regionCode: {
+      type: String,
+      default: "+84",
+      name: "regionCode",
+    },
+  },
 });
-const ProvidersSchema=Model('providers',Providers);
-module.exports={
-    ProvidersSchema,
+const ProvidersSchema = Model("providers", Providers);
+module.exports = {
+  ProvidersSchema,
 };
