@@ -1,5 +1,9 @@
 const { Schema,Model } = require('../../config/mongoose.config');
 const Providers = new Schema({
+    _id:{
+        type: Number,
+        name: '_id'
+    },
     name: {
         type: String,
         name: "name",

@@ -278,7 +278,7 @@ router.get("/detail/:id", [checkAuthorization], async (req, res) => {
         if (!id) {
             throw { message: "not id", status: "400" };
         }
-        const result = await detailPhonehone(id);
+        const result = await detailPhone(id);
         return res.send(responsePresenter(result, responseMeta()));
     } catch (error) {
         let { message, status } = error;
