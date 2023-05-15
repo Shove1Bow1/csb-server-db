@@ -9,9 +9,11 @@ const { findAllReports,
     getCodeAndSevenNumber,
     createReport,
     getListSpammer,
-    getTop10SpammerSer,
+    getTop10SpammerByTopReports,
     suggestSearching,
-    identicalCall } = require('../services/phone-number.service');
+    identicalCall, 
+    detailPhone,
+    top10SpammerRecentReports} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -160,9 +162,9 @@ router.get('/spammers', [checkAuthorization], async (req, res) => {
     }
 })
 
-router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
+router.get('/spammers/top-ten/top-reports', [checkAuthorization], async (req, res) => {
     try {
-        const result = await getTop10SpammerSer();
+        const result = await getTop10SpammerByTopReports();
         return res.send(
             responsePresenter(
                 result,
@@ -176,7 +178,7 @@ router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
             message = '';
             status = '500';
         }
-        logError(error, '/spammer \nmethod: GET');
+        logError(error, '/spammer/top-ten/top-reports \nmethod: GET');
         throw res.status(Number(error.status)).send(
             responsePresenter(
                 null,
@@ -186,13 +188,9 @@ router.get('/spammers/top-ten', [checkAuthorization], async (req, res) => {
     }
 })
 
-router.get('/:phoneNumber/suggest', [checkAuthorization], async (req, res) => {
+router.get('/spammers/top-ten/recent-reports', [checkAuthorization], async (req,res)=>{
     try {
-        const { phoneNumber } = req.params;
-        if (!phoneNumber || phoneNumber.length >= 10) {
-            throw { message: 'phone number not exist', status: '400' };
-        }
-        const result = await suggestSearching(phoneNumber);
+        const result = await top10SpammerRecentReports();
         return res.send(
             responsePresenter(
                 result,
@@ -206,8 +204,36 @@ router.get('/:phoneNumber/suggest', [checkAuthorization], async (req, res) => {
             message = '';
             status = '500';
         }
-        console.log(error);
-        logError(error, '/:phoneNumber/suggest \nmethod: GET');
+        logError(error, '/spammers/top-ten/recent-reports \nmethod: GET');
+        throw res.status(Number(error.status)).send(
+            responsePresenter(
+                null,
+                responseMeta(HTTP_RESPONSE[error.status], status, message)
+            )
+        )
+    }
+})
+router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res) => {
+    try {
+        const { phoneNumber,type } = req.params;
+        if (!phoneNumber || phoneNumber.length >= 10) {
+            throw { message: 'phone number not exist', status: '400' };
+        }
+        const result = await suggestSearching(phoneNumber, type ? type : 1);
+        return res.send(
+            responsePresenter(
+                result,
+                responseMeta()
+            )
+        );
+    }
+    catch (error) {
+        let { message, status } = error;
+        if (!status) {
+            message = '';
+            status = '500';
+        }
+        logError(error, '/:phoneNumber/suggest/:type \nmethod: GET');
         return res.status(Number(status)).send(
             responsePresenter(
                 null,
@@ -216,6 +242,7 @@ router.get('/:phoneNumber/suggest', [checkAuthorization], async (req, res) => {
         )
     }
 })
+
 router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res) => {
     try {
         const { phoneNumber } = req.params;
@@ -235,7 +262,6 @@ router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res)
             message = '';
             status = '500';
         }
-        console.log(error);
         logError(error, '/:phoneNumber/incoming-call \nmethod: GET');
         return res.status(Number(status)).send(
             responsePresenter(
@@ -245,4 +271,30 @@ router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res)
         )
     }
 })
+
+router.get("/detail/:id", [checkAuthorization], async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw { message: "not id", status: "400" };
+        }
+        const result = await detailPhonehone(id);
+        return res.send(responsePresenter(result, responseMeta()));
+    } catch (error) {
+        let { message, status } = error;
+        if (!status) {
+            message = "";
+            status = "500";
+        }
+        logError(error, "/:phoneNumber/detail \nmethod: GET");
+        return res
+            .status(Number(status))
+            .send(
+                responsePresenter(
+                    null,
+                    responseMeta(HTTP_RESPONSE[status], status, message)
+                )
+            );
+    }
+});
 module.exports = router;

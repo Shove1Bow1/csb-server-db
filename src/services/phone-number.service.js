@@ -1,11 +1,13 @@
 const { client } = require("../../config/redis.config");
 const { getQuanityReportInFiveMonth,
-        getReportsByMonth,
-        getListReportsByPhoneNumber,
-        getListSpammerAgg,
-        getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
+    getReportsByMonth,
+    getListReportsByPhoneNumber,
+    getListSpammerAgg,
+    getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
 const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value");
+const { MobileCodesSchema } = require("../entities/mobile-codes.entity");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
+const { ProvidersSchema } = require("../entities/providers.entity");
 const phoneNumbersSchema = PhoneNumbersSchema;
 
 async function findAllReports(phoneNumber, code) {
@@ -94,7 +96,6 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
             'reportList.deviceCodeId': deviceId
         })
         if (!deviceExist[0]) {
-            setQueueReport(deviceId, title, content, timeReport, phoneNumber);
             return await PhoneNumbersSchema.updateOne({
                 phoneNumber,
                 mobileCodeId,
@@ -112,7 +113,6 @@ async function createReport({ phoneNumber, mobileCodeId, content, title, deviceI
         }
         throw { message: 'This device already reported this number - conflict happen', status: '409' }
     }
-    setQueueReport(deviceId, title, content, reportDate, phoneNumber);
     return await PhoneNumbersSchema.create({
         phoneNumber,
         mobileCodeId,
@@ -143,15 +143,24 @@ async function getListSpammer() {
     return result ? result : [];
 }
 
-async function getTop10SpammerSer() {
+async function getTop10SpammerByTopReports() {
     const result = await getTop10SpammerReports();
     return result ? result : [];
 }
 
-async function suggestSearching(phoneNumber) {
-    const result = await PhoneNumbersSchema.find({
-        phoneNumber: new RegExp(phoneNumber, 'i')
-    }, { phoneNumber: 1, status: 1 }, { limit: 10 })
+async function suggestSearching(phoneNumber, type) {
+    let result = [];
+    if (type === '1') {
+        result = await PhoneNumbersSchema.find({
+            phoneNumber: new RegExp(phoneNumber, 'i'),
+        }, { phoneNumber: 1, status: 1 }, { limit: 10 })
+    }
+    else {
+        result = await PhoneNumbersSchema.find({
+            phoneNumber: new RegExp(phoneNumber, 'i'),
+            status:LIST_STATUS[2]
+        }, { phoneNumber: 1, status: 1 }, { limit: 10 })
+    }
     return result ? result : [];
 }
 
@@ -180,6 +189,28 @@ async function setQueueReport(deviceId, title, content, reportDate, phoneNumber)
 async function rejectReport(phoneNumber) {
 
 }
+
+async function detailPhone(id) {
+    const phoneNumber = await PhoneNumbersSchema.findOne({
+        _id: id,
+    });
+    const mobileCode = await MobileCodesSchema.findOne({
+        _id: phoneNumber.mobileCodeId,
+    });
+    const provider = await ProvidersSchema.findById({
+        _id: mobileCode.providerId,
+    });
+    return phoneNumber
+        ? { ...phoneNumber._doc, ...provider._doc, code: mobileCode.code }
+        : {};
+}
+
+async function top10SpammerRecentReports(){
+    const result = await PhoneNumbersSchema.find({
+      status: LIST_STATUS[2],
+    }).sort({updatedAt: -1}).limit(10).select('-reportList -createdAt -isDelete -__v');
+    return result;
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -189,7 +220,9 @@ module.exports = {
     getCodeAndSevenNumber,
     createReport,
     getListSpammer,
-    getTop10SpammerSer,
+    getTop10SpammerByTopReports,
     suggestSearching,
-    identicalCall
+    identicalCall,
+    detailPhone,
+    top10SpammerRecentReports
 };
