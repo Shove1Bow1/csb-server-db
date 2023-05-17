@@ -44,7 +44,6 @@ async function getAllReportNumbers() {
 async function getReportInFiveMonth() {
     try {
         const result = await getQuanityReportInFiveMonth();
-        console.log(result);
         return result;
     }
     catch (error) {
