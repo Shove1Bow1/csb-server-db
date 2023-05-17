@@ -226,7 +226,6 @@ async function getTotalNumbersCreateIn6Month(month, year) {
             }
         ]
     );
-    console.log(totalNumbers);
     return totalNumbers;
 }
 module.exports = {
