@@ -31,6 +31,20 @@ const PhoneNumbers = new Schema({
         name: 'phoneNumber',
         index: true
     },
+    callTracker: [{
+        dateTracker: {
+            type: String,
+            name: 'dateTracker',
+            index: true,
+        },
+        numberOfCall:{
+            type: Number,
+            name: 'numberOfCall',
+            index: true,
+        }
+    }]
+
+    ,
     status: {
         type: String,
         default: 'reported',

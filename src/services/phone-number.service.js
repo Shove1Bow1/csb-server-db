@@ -3,8 +3,9 @@ const { getQuanityReportInFiveMonth,
     getReportsByMonth,
     getListReportsByPhoneNumber,
     getListSpammerAgg,
-    getTop10SpammerReports, 
-    getTotalNumbersCreateIn6Month} = require("../aggregations/phone-numbers.aggreation");
+    getTop10SpammerReports,
+    getTotalNumbersCreateIn6Month } = require("../aggregations/phone-numbers.aggreation");
+const { CALLS_IN_MONTH } = require("../constant/value");
 const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value");
 const { MobileCodesSchema } = require("../entities/mobile-codes.entity");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
@@ -158,7 +159,7 @@ async function suggestSearching(phoneNumber, type) {
     else {
         result = await PhoneNumbersSchema.find({
             phoneNumber: new RegExp(phoneNumber, 'i'),
-            status:LIST_STATUS[2]
+            status: LIST_STATUS[2]
         }, { phoneNumber: 1, status: 1 }, { limit: 10 })
     }
     return result ? result : [];
@@ -168,6 +169,7 @@ async function identicalCall(phoneNumber) {
     const result = await PhoneNumbersSchema.findOne({
         phoneNumber
     }).select('-reportList')
+    trackingPhoneCalls(phoneNumber,result.status);
     return result;
 }
 
@@ -205,21 +207,59 @@ async function detailPhone(id) {
         : {};
 }
 
-async function top10SpammerRecentReports(){
+async function top10SpammerRecentReports() {
     const result = await PhoneNumbersSchema.find({
-      status: LIST_STATUS[2],
-    }).sort({updatedAt: -1}).limit(10).select('-reportList -createdAt -isDelete -__v');
+        status: LIST_STATUS[2],
+    }).sort({ updatedAt: -1 }).limit(10).select('-reportList -createdAt -isDelete -__v');
     return result;
 }
 
-async function recentCreatedPhoneNumbersIn7Days(){
-    
+async function recentCreatedPhoneNumbersIn7Days() {
+
 }
 
-async function getCreatedPhoneNumbersIn6Month(month,year){
-    const result= await getTotalNumbersCreateIn6Month(month,year);
-    const total = result[0].count+result[1].count+result[2].count+result[3].count+result[4].count+result[5].count;
-    return result? {total,sixMonth:[...result]}:[];
+async function getCreatedPhoneNumbersIn6Month(month, year) {
+    const result = await getTotalNumbersCreateIn6Month(month, year);
+    const total = result[0].count + result[1].count + result[2].count + result[3].count + result[4].count + result[5].count;
+    return result ? { total, sixMonth: [...result] } : [];
+}
+
+async function trackingPhoneCalls(phoneNumber,status) {
+    const temp = new Date();
+    const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
+    const phoneNumberData = await PhoneNumbersSchema.findOne({
+        phoneNumber,
+        status: LIST_STATUS[1],
+        'callTracker.dateTracker': curMonthYear,
+    }).select('-reportList -createdAt -updatedAt');
+    if (status === LIST_STATUS[1]) {
+        if (phoneNumberData) {
+            phoneNumberData.callTracker[0].numberOfCall++;
+            if (phoneNumberData.callTracker[0].numberOfCall >= CALLS_IN_MONTH) {
+                phoneNumberData.status = LIST_STATUS[2];
+            }
+            await PhoneNumbersSchema.updateOne({
+                phoneNumber,
+                'callTracker.dateTracker': curMonthYear,
+                status: LIST_STATUS[1],
+            }, {  $inc:{'callTracker.$.numberOfCall':1}, 'status': phoneNumberData.status })
+        }
+        else {
+            await PhoneNumbersSchema.updateOne({
+                phoneNumber,
+                status: LIST_STATUS[1],
+            }, {
+                $push: {
+                    callTracker: {
+                        dateTracker: curMonthYear,
+                        numberOfCall: 1
+                    }
+                }
+            })
+        }
+    }
+
+    return 'success';
 }
 module.exports = {
     findAllReports,
