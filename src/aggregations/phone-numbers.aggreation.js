@@ -152,7 +152,8 @@ async function getTop10SpammerReports() {
                             'reportSize': {
                                 '$size': '$reportList'
                             },
-                            'phoneNumber': '$phoneNumber'
+                            'phoneNumber': '$phoneNumber',
+                            '_id':'$_id',
                         }
                     }
                 }
@@ -173,7 +174,9 @@ async function getTop10SpammerReports() {
             '$limit': 10
         }, {
             '$project': {
-                'phoneNumber': '$phoneInfo.phoneNumber'
+                'reportSize':'$phoneInfo.reportSize',
+                'phoneNumber': '$phoneInfo.phoneNumber',
+                '_id':'$phoneInfo._id'
             }
         }
     ]
