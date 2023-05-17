@@ -3,7 +3,8 @@ const { getQuanityReportInFiveMonth,
     getReportsByMonth,
     getListReportsByPhoneNumber,
     getListSpammerAgg,
-    getTop10SpammerReports } = require("../aggregations/phone-numbers.aggreation");
+    getTop10SpammerReports, 
+    getTotalNumbersCreateIn6Month} = require("../aggregations/phone-numbers.aggreation");
 const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value");
 const { MobileCodesSchema } = require("../entities/mobile-codes.entity");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
@@ -211,6 +212,16 @@ async function top10SpammerRecentReports(){
     }).sort({updatedAt: -1}).limit(10).select('-reportList -createdAt -isDelete -__v');
     return result;
 }
+
+async function recentCreatedPhoneNumbersIn7Days(){
+    
+}
+
+async function getCreatedPhoneNumbersIn6Month(month,year){
+    const result= await getTotalNumbersCreateIn6Month(month,year);
+    const total = result[0].count+result[1].count+result[2].count+result[3].count+result[4].count+result[5].count;
+    return result? {total,sixMonth:[...result]}:[];
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -224,5 +235,6 @@ module.exports = {
     suggestSearching,
     identicalCall,
     detailPhone,
-    top10SpammerRecentReports
+    top10SpammerRecentReports,
+    getCreatedPhoneNumbersIn6Month
 };
