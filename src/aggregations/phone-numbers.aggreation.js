@@ -1,5 +1,5 @@
 const { PhoneNumbersSchema } = require('../entities/phone-numbers.entity');
-const { getFiveMonth } = require('../utils/five-month');
+const { getFiveMonth, getSixMonth } = require('../utils/list-month');
 
 async function getQuanityReportInFiveMonth() {
     const fiveMonth = getFiveMonth();
@@ -122,7 +122,7 @@ async function getListSpammerAgg() {
                     'phoneInfo': {
                         '$push': {
                             'phoneNumber': '$phoneNumber',
-                            'isInContact': false, 
+                            'isInContact': false,
                             'isSpammer': true
                         }
                     }
@@ -137,48 +137,94 @@ async function getListSpammerAgg() {
     return spammerList[0];
 }
 
-async function getTop10SpammerReports(){
-    const top10Spammer= await PhoneNumbersSchema.aggregate([
+async function getTop10SpammerReports() {
+    const top10Spammer = await PhoneNumbersSchema.aggregate([
         {
-          '$bucket': {
-            'groupBy': '$status', 
-            'boundaries': [
-              'spammer', 'unknown'
-            ], 
-            'default': 'unknown', 
-            'output': {
-              'phoneInfo': {
-                '$push': {
-                  'reportSize': {
-                    '$size': '$reportList'
-                  }, 
-                  'phoneNumber': '$phoneNumber'
+            '$bucket': {
+                'groupBy': '$status',
+                'boundaries': [
+                    'spammer', 'unknown'
+                ],
+                'default': 'unknown',
+                'output': {
+                    'phoneInfo': {
+                        '$push': {
+                            'reportSize': {
+                                '$size': '$reportList'
+                            },
+                            'phoneNumber': '$phoneNumber'
+                        }
+                    }
                 }
-              }
             }
-          }
         }, {
-          '$match': {
-            '_id': 'spammer'
-          }
+            '$match': {
+                '_id': 'spammer'
+            }
         }, {
-          '$unwind': {
-            'path': '$phoneInfo'
-          }
+            '$unwind': {
+                'path': '$phoneInfo'
+            }
         }, {
-          '$sort': {
-            'phoneInfo.reportSize': -1
-          }
+            '$sort': {
+                'phoneInfo.reportSize': -1
+            }
         }, {
-          '$limit': 10
+            '$limit': 10
         }, {
-          '$project': {
-            'phoneNumber': '$phoneInfo.phoneNumber'
-          }
+            '$project': {
+                'phoneNumber': '$phoneInfo.phoneNumber'
+            }
         }
-      ]
+    ]
     );
     return top10Spammer;
+}
+
+async function getTotalNumbersCreateIn6Month(month, year) {
+    const sevenMonth = getSixMonth(month, year);
+    const totalNumbers = await PhoneNumbersSchema.aggregate(
+        [
+            {
+                '$project': {
+                    'phoneNumber': '$phoneNumber',
+                    'month': {
+                        '$month': '$createdAt'
+                    },
+                    'year': {
+                        '$year': '$createdAt'
+                    }
+                }
+            },
+            {
+                '$match': {
+                    'year': {
+                        '$in': sevenMonth.listYear
+                    },
+                    'month': {
+                        '$in': sevenMonth.listMonth
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': {
+                        'month': '$month',
+                        'year': '$year'
+                    },
+                    'count': {
+                        '$count': {}
+                    }
+                }
+            }, {
+                '$sort': {
+                    '_id.year': -1,
+                    '_id.month': -1
+                }
+            }
+        ]
+    );
+    console.log(totalNumbers);
+    return totalNumbers;
 }
 module.exports = {
     getQuanityReportInFiveMonth,
@@ -186,4 +232,5 @@ module.exports = {
     getListReportsByPhoneNumber,
     getListSpammerAgg,
     getTop10SpammerReports,
+    getTotalNumbersCreateIn6Month
 };
