@@ -11,9 +11,10 @@ const { findAllReports,
     getListSpammer,
     getTop10SpammerByTopReports,
     suggestSearching,
-    identicalCall, 
+    identicalCall,
     detailPhone,
-    top10SpammerRecentReports} = require('../services/phone-number.service');
+    top10SpammerRecentReports, 
+    getCreatedPhoneNumbersIn6Month} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -188,7 +189,7 @@ router.get('/spammers/top-ten/top-reports', [checkAuthorization], async (req, re
     }
 })
 
-router.get('/spammers/top-ten/recent-reports', [checkAuthorization], async (req,res)=>{
+router.get('/spammers/top-ten/recent-reports', [checkAuthorization], async (req, res) => {
     try {
         const result = await top10SpammerRecentReports();
         return res.send(
@@ -215,7 +216,7 @@ router.get('/spammers/top-ten/recent-reports', [checkAuthorization], async (req,
 })
 router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res) => {
     try {
-        const { phoneNumber,type } = req.params;
+        const { phoneNumber, type } = req.params;
         if (!phoneNumber || phoneNumber.length >= 10) {
             throw { message: 'phone number not exist', status: '400' };
         }
@@ -297,4 +298,36 @@ router.get("/detail/:id", [checkAuthorization], async (req, res) => {
             );
     }
 });
+
+router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req, res) => {
+    try {
+        const { year, month } = req.params;
+        if (Number.isNaN(year) || Number.isNaN(month)) {
+            throw { message: 'year or month must be a number', status: '400' }
+        }
+        const result=await getCreatedPhoneNumbersIn6Month(Number(month),Number(year));
+        return res.send(
+            responsePresenter(
+                result,
+                responseMeta()
+            )
+        )
+    }
+    catch (error) {
+        let { message, status } = error;
+        if (!status) {
+            message = "";
+            status = "500";
+        }
+        logError(error, "/month/:month/year/:year/created \nmethod: GET");
+        return res
+            .status(Number(status))
+            .send(
+                responsePresenter(
+                    null,
+                    responseMeta(HTTP_RESPONSE[status], status, message)
+                )
+            );
+    }
+})
 module.exports = router;
