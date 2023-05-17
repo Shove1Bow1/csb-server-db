@@ -196,7 +196,6 @@ async function detailPhone(id) {
     const phoneNumber = await PhoneNumbersSchema.findOne({
         _id: id,
     });
-    console.log(id);
     const mobileCode = await MobileCodesSchema.findOne({
         _id: phoneNumber.mobileCodeId,
     });
