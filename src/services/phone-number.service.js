@@ -263,6 +263,12 @@ async function trackingPhoneCalls(phoneNumber,status) {
     return 'success';
 }
 
+// Thực hiện nhiệm vụ lấy dữ liệu trên redis
+// Mỗi lần thực hiện cách nhau 10p30
+// Số lần truy vấn gồm 5 keys - mỗi keys là định danh theo deviceId
+// Số lần truy vấn trong mỗi keys sẽ lấy theo hash, số lượng lưu trữ theo hash-unknown do data lưu trên redis quy định
+// Các trường phải có trong 1 hash bao gồm số điện thoại, content, title, reportDate,
+// Key sẽ bị xóa sau khi dữ liệu của key đó được lấy hết
 cron.schedule('30 10 * * * * *',async ()=>{
     await clientRedis.connect();
     const keys=(await clientRedis.keys('*'));
@@ -278,7 +284,7 @@ cron.schedule('30 10 * * * * *',async ()=>{
                 phoneNumber: value.phoneNumber,
                 content: value.content,
                 title: value.title,
-                reportId: value.createdAt? value.createdAt: new Date(),
+                reportDate: value.createdAt? value.createdAt: new Date(),
             })
         }
         await clientRedis.del(keys[i]);
@@ -288,6 +294,7 @@ cron.schedule('30 10 * * * * *',async ()=>{
     createReports(groupedReports);
 })
 
+// Group các array có số điện thoại trùng nhau đảm bảo cho mongo lúc insert hay update sẽ không bị overload
 async function groupingReports(ungroupedReports){
     var groupedReports= ungroupedReports.reduce((reports,report)=>{
         reports[report.phoneNumber]=reports[report.phoneNumber]||[];
