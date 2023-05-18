@@ -1,4 +1,4 @@
-const { client } = require("../../config/redis.config");
+const { clientRedis } = require("../../config/redis.config");
 const { getQuanityReportInFiveMonth,
     getReportsByMonth,
     getListReportsByPhoneNumber,
@@ -10,11 +10,12 @@ const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value")
 const { MobileCodesSchema } = require("../entities/mobile-codes.entity");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const { ProvidersSchema } = require("../entities/providers.entity");
-const phoneNumbersSchema = PhoneNumbersSchema;
-
+const cron =require('node-cron');
+const { encryptMobileDevice } = require("../utils/encrypt");
+const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
 async function findAllReports(phoneNumber, code) {
     try {
-        const result = await phoneNumbersSchema.find({
+        const result = await PhoneNumbersSchema.find({
             where: {
                 PhoneNumber: phoneNumber,
                 MobileId: code,
@@ -30,7 +31,7 @@ async function findAllReports(phoneNumber, code) {
 
 async function getAllReportNumbers() {
     try {
-        const result = await phoneNumbersSchema.find({
+        const result = await PhoneNumbersSchema.find({
             where: {
                 status: "reported"
             }
@@ -261,6 +262,73 @@ async function trackingPhoneCalls(phoneNumber,status) {
 
     return 'success';
 }
+
+cron.schedule('30 10 * * * * *',async ()=>{
+    await clientRedis.connect();
+    const keys=(await clientRedis.keys('*'));
+    const keysLength=keys.length<=5?keysLength:5;
+    const ungroupedReports=[];
+    for(let i=0;i<keysLength;i++){
+        const deviceData= await clientRedis.hGet(keys[i]);
+        const deviceId=encryptMobileDevice(keys[i]);
+        for(const field in deviceData){
+            const value= JSON.parse(deviceData[field]);
+            ungroupedReports.push({
+                deviceId,
+                phoneNumber: value.phoneNumber,
+                content: value.content,
+                title: value.title,
+                reportId: value.createdAt? value.createdAt: new Date(),
+            })
+        }
+        await clientRedis.del(keys[i]);
+    }
+    await clientRedis.quit();
+    const groupedReports=groupingReports(ungroupedReports);
+    createReports(groupedReports);
+})
+
+async function groupingReports(ungroupedReports){
+    var groupedReports= ungroupedReports.reduce((reports,report)=>{
+        reports[report.phoneNumber]=reports[report.phoneNumber]||[];
+        reports[report.phoneNumber].push(report);
+        return reports;
+    }, Object.create(null));
+    return groupedReports;
+}
+
+async function createReports(groupedReports){
+    for(const phoneNumber in groupedReports){
+        const isExistPhoneNumber=await PhoneNumbersSchema.findOne({
+            phoneNumber
+        })
+        if(isExistPhoneNumber){
+            const numberOfReport= isExistPhoneNumber.reportList.length+groupedReports[phoneNumber].length;
+            const status=updateStatus(numberOfReport);
+            await PhoneNumbersSchema.updateOne({
+                phoneNumber
+            },{
+                $push:{
+                    reportList:groupedReports[phoneNumber]
+                },
+                $set:{
+                    status
+                }
+            })
+        }
+        else{
+            const mobileCodeId= getMobileCodeId(phoneNumber.slice(0,2));
+            await PhoneNumbersSchema.create({
+                phoneNumber,
+                mobileCodeId,
+                reportList: groupedReports[phoneNumber],
+                isDelete: false,
+                status: groupedReports[phoneNumber].length<POTENTIAL_SPAMMER?LIST_STATUS[0]:LIST_STATUS[1],
+            })
+        }
+    }
+}
+
 module.exports = {
     findAllReports,
     getAllReportNumbers,

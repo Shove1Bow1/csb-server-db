@@ -23,6 +23,7 @@ const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
 const { encryptMobileDevice } = require('../utils/encrypt');
+const { clientRedis } = require('../../config/redis.config');
 
 router.get('/reports', [checkJWTToken], async (req, res) => {
     try {
@@ -330,4 +331,5 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
             );
     }
 })
+
 module.exports = router;
