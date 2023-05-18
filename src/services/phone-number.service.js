@@ -291,7 +291,7 @@ cron.schedule('30 10 * * * * *',async ()=>{
 async function groupingReports(ungroupedReports){
     var groupedReports= ungroupedReports.reduce((reports,report)=>{
         reports[report.phoneNumber]=reports[report.phoneNumber]||[];
-        reports[report.phoneNumber].push(a);
+        reports[report.phoneNumber].push(report);
         return reports;
     }, Object.create(null));
     return groupedReports;

@@ -331,9 +331,5 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
             );
     }
 })
-router.get('/hello',async (req,res)=>{
-    await clientRedis.connect();
-    res.send(await clientRedis.ping())
-    await clientRedis.quit();
-})
+
 module.exports = router;
