@@ -170,7 +170,7 @@ async function identicalCall(phoneNumber) {
     const result = await PhoneNumbersSchema.findOne({
         phoneNumber
     }).select('-reportList');
-    let statusId = 4;
+    let statusId = 3;
     if (result) {
         trackingPhoneCalls(phoneNumber, result.status);
         switch (result.status) {
