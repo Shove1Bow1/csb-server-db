@@ -249,7 +249,7 @@ router.get('/:phoneNumber/incoming-call', [checkAuthorization], async (req, res)
     try {
         const { phoneNumber } = req.params;
         if (!phoneNumber || phoneNumber.length !== 10) {
-            throw { message: 'phone number not exist', status: '400' };
+            throw { message: 'phone number not exist', status: '404' };
         }
         return res.send(
             responsePresenter(

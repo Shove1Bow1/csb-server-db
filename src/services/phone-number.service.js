@@ -169,9 +169,22 @@ async function suggestSearching(phoneNumber, type) {
 async function identicalCall(phoneNumber) {
     const result = await PhoneNumbersSchema.findOne({
         phoneNumber
-    }).select('-reportList')
-    trackingPhoneCalls(phoneNumber,result.status);
-    return result;
+    }).select('-reportList');
+    let statusId=4;
+    if(result){
+        trackingPhoneCalls(phoneNumber,result.status);
+        switch(result.status){
+        case LIST_STATUS[0]:
+            statusId=0;
+            break;
+        case LIST_STATUS[1]:
+            statusId=1;
+            break;
+        case LIST_STATUS[2]:
+            statusId=2;
+            break;
+    }}
+    return statusId;
 }
 
 async function setQueueReport(deviceId, title, content, reportDate, phoneNumber) {
