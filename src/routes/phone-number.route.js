@@ -218,7 +218,7 @@ router.get('/spammers/top-ten/recent-reports', [checkAuthorization], async (req,
 router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res) => {
     try {
         const { phoneNumber, type } = req.params;
-        if (!phoneNumber || phoneNumber.length >= 10) {
+        if (!phoneNumber || phoneNumber.length > 10) {
             throw { message: 'phone number not exist', status: '400' };
         }
         const result = await suggestSearching(phoneNumber, type ? type : 1);
