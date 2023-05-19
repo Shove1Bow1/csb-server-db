@@ -10,7 +10,7 @@ const { LIST_STATUS, SPAMMER, POTENTIAL_SPAMMER } = require("../constant/value")
 const { MobileCodesSchema } = require("../entities/mobile-codes.entity");
 const { PhoneNumbersSchema } = require("../entities/phone-numbers.entity");
 const { ProvidersSchema } = require("../entities/providers.entity");
-const cron =require('node-cron');
+const cron = require('node-cron');
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
 async function findAllReports(phoneNumber, code) {
@@ -170,20 +170,21 @@ async function identicalCall(phoneNumber) {
     const result = await PhoneNumbersSchema.findOne({
         phoneNumber
     }).select('-reportList');
-    let statusId=4;
-    if(result){
-        trackingPhoneCalls(phoneNumber,result.status);
-        switch(result.status){
-        case LIST_STATUS[0]:
-            statusId=0;
-            break;
-        case LIST_STATUS[1]:
-            statusId=1;
-            break;
-        case LIST_STATUS[2]:
-            statusId=2;
-            break;
-    }}
+    let statusId = 4;
+    if (result) {
+        trackingPhoneCalls(phoneNumber, result.status);
+        switch (result.status) {
+            case LIST_STATUS[0]:
+                statusId = 0;
+                break;
+            case LIST_STATUS[1]:
+                statusId = 1;
+                break;
+            case LIST_STATUS[2]:
+                statusId = 2;
+                break;
+        }
+    }
     return statusId;
 }
 
@@ -238,7 +239,7 @@ async function getCreatedPhoneNumbersIn6Month(month, year) {
     return result ? { total, sixMonth: [...result] } : [];
 }
 
-async function trackingPhoneCalls(phoneNumber,status) {
+async function trackingPhoneCalls(phoneNumber, status) {
     const temp = new Date();
     const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
     const phoneNumberData = await PhoneNumbersSchema.findOne({
@@ -256,7 +257,7 @@ async function trackingPhoneCalls(phoneNumber,status) {
                 phoneNumber,
                 'callTracker.dateTracker': curMonthYear,
                 status: LIST_STATUS[1],
-            }, {  $inc:{'callTracker.$.numberOfCall':1}, 'status': phoneNumberData.status })
+            }, { $inc: { 'callTracker.$.numberOfCall': 1 }, 'status': phoneNumberData.status })
         }
         else {
             await PhoneNumbersSchema.updateOne({
@@ -282,69 +283,73 @@ async function trackingPhoneCalls(phoneNumber,status) {
 // Số lần truy vấn trong mỗi keys sẽ lấy theo hash, số lượng lưu trữ theo hash-unknown do data lưu trên redis quy định
 // Các trường phải có trong 1 hash bao gồm số điện thoại, content, title, reportDate,
 // Key sẽ bị xóa sau khi dữ liệu của key đó được lấy hết
-cron.schedule('30 10 * * * * *',async ()=>{
+cron.schedule('30 10 * * * * *', async () => {
     await clientRedis.connect();
-    const keys=(await clientRedis.keys('*'));
-    const keysLength=keys.length<=5?keysLength:5;
-    const ungroupedReports=[];
-    for(let i=0;i<keysLength;i++){
-        const deviceData= await clientRedis.hGet(keys[i]);
-        const deviceId=encryptMobileDevice(keys[i]);
-        for(const field in deviceData){
-            const value= JSON.parse(deviceData[field]);
-            ungroupedReports.push({
-                deviceId,
-                phoneNumber: value.phoneNumber,
-                content: value.content,
-                title: value.title,
-                reportDate: value.createdAt? value.createdAt: new Date(),
-            })
+    if (clientRedis.isReady) {
+        const keys = (await clientRedis.keys('*'));
+        const keysLength = keys.length <= 5 ? keysLength : 5;
+        const ungroupedReports = [];
+        for (let i = 0; i < keysLength; i++) {
+            const deviceData = await clientRedis.hGet(keys[i]);
+            const deviceId = encryptMobileDevice(keys[i]);
+            for (const field in deviceData) {
+                const value = JSON.parse(deviceData[field]);
+                ungroupedReports.push({
+                    deviceId,
+                    phoneNumber: value.phoneNumber,
+                    content: value.content,
+                    title: value.title,
+                    reportDate: value.createdAt ? value.createdAt : new Date(),
+                })
+            }
+            await clientRedis.del(keys[i]);
         }
-        await clientRedis.del(keys[i]);
+        await clientRedis.quit();
+        if(ungroupedReports[0]){
+            const groupedReports = groupingReports(ungroupedReports);
+            createReports(groupedReports);
+        }
     }
-    await clientRedis.quit();
-    const groupedReports=groupingReports(ungroupedReports);
-    createReports(groupedReports);
 })
 
 // Group các index trong arrayReports có số điện thoại trùng nhau đảm bảo cho mongo
 // lúc insert hay update sẽ không bị overload
-async function groupingReports(ungroupedReports){
-    var groupedReports= ungroupedReports.reduce((reports,report)=>{
-        reports[report.phoneNumber]=reports[report.phoneNumber]||[];
+async function groupingReports(ungroupedReports) {
+    var groupedReports = ungroupedReports.reduce((reports, report) => {
+        reports[report.phoneNumber] = reports[report.phoneNumber] || [];
         reports[report.phoneNumber].push(report);
         return reports;
     }, Object.create(null));
     return groupedReports;
 }
 
-async function createReports(groupedReports){
-    for(const phoneNumber in groupedReports){
-        const isExistPhoneNumber=await PhoneNumbersSchema.findOne({
+async function createReports(groupedReports) {
+    for (const phoneNumber in groupedReports) {
+        const isExistPhoneNumber = await PhoneNumbersSchema.findOne({
             phoneNumber
         })
-        if(isExistPhoneNumber){
-            const numberOfReport= isExistPhoneNumber.reportList.length+groupedReports[phoneNumber].length;
-            const status=updateStatus(numberOfReport);
+        if (isExistPhoneNumber) {
+            const numberOfReport = isExistPhoneNumber.reportList.length + groupedReports[phoneNumber].length;
+            const status = updateStatus(numberOfReport);
             await PhoneNumbersSchema.updateOne({
                 phoneNumber
-            },{
-                $push:{
-                    reportList:groupedReports[phoneNumber]
+            }, {
+                $push: {
+                    reportList: groupedReports[phoneNumber]
                 },
-                $set:{
+                $set: {
                     status
                 }
             })
         }
-        else{
-            const mobileCodeId= getMobileCodeId(phoneNumber.slice(0,2));
+        else {
+            const mobileCodeId = getMobileCodeId(phoneNumber.slice(0, 2));
             await PhoneNumbersSchema.create({
                 phoneNumber,
                 mobileCodeId,
                 reportList: groupedReports[phoneNumber],
                 isDelete: false,
-                status: groupedReports[phoneNumber].length<POTENTIAL_SPAMMER?LIST_STATUS[0]:LIST_STATUS[1],
+                status: groupedReports[phoneNumber].length < POTENTIAL_SPAMMER ? LIST_STATUS[0] : LIST_STATUS[1],
             })
         }
     }
