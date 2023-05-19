@@ -219,7 +219,7 @@ router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res)
     try {
         const { phoneNumber, type } = req.params;
         if (!phoneNumber || phoneNumber.length > 10) {
-            throw { message: 'phone number not exist', status: '400' };
+            throw { message: 'phone number not exist', status: '404' };
         }
         const result = await suggestSearching(phoneNumber, type ? type : 1);
         return res.send(
