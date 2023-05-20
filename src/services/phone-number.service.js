@@ -283,78 +283,81 @@ async function trackingPhoneCalls(phoneNumber, status) {
 // Số lần truy vấn trong mỗi keys sẽ lấy theo hash, số lượng lưu trữ theo hash-unknown do data lưu trên redis quy định
 // Các trường phải có trong 1 hash bao gồm số điện thoại, content, title, reportDate,
 // Key sẽ bị xóa sau khi dữ liệu của key đó được lấy hết
-cron.schedule('30 10 * * * * *', async () => {
-    await clientRedis.connect();
-    if (clientRedis.isReady) {
-        const keys = (await clientRedis.keys('*'));
-        const keysLength = keys.length <= 5 ? keysLength : 5;
-        const ungroupedReports = [];
-        for (let i = 0; i < keysLength; i++) {
-            const deviceData = await clientRedis.hGet(keys[i]);
-            const deviceId = encryptMobileDevice(keys[i]);
-            for (const field in deviceData) {
-                const value = JSON.parse(deviceData[field]);
-                ungroupedReports.push({
-                    deviceId,
-                    phoneNumber: value.phoneNumber,
-                    content: value.content,
-                    title: value.title,
-                    reportDate: value.createdAt ? value.createdAt : new Date(),
-                })
-            }
-            await clientRedis.del(keys[i]);
-        }
-        await clientRedis.quit();
-        if(ungroupedReports[0]){
-            const groupedReports = groupingReports(ungroupedReports);
-            createReports(groupedReports);
-        }
-    }
-})
+// cron.schedule('30 10 * * * * *', async () => {
+//     await clientRedis.connect();
+//     if (clientRedis.isReady) {
+//         const keys = (await clientRedis.keys('*'));
+//         const keysLength = keys.length <= 5 ? keysLength : 5;
+//         const ungroupedReports = [];
+//         for (let i = 0; i < keysLength; i++) {
+//             const deviceData = await clientRedis.hGet(keys[i]);
+//             const deviceId = encryptMobileDevice(keys[i]);
+//             for (const field in deviceData) {
+//                 const value = JSON.parse(deviceData[field]);
+//                 ungroupedReports.push({
+//                     deviceId,
+//                     phoneNumber: value.phoneNumber,
+//                     content: value.content,
+//                     title: value.title,
+//                     reportDate: value.createdAt ? value.createdAt : new Date(),
+//                 })
+//             }
+//             await clientRedis.del(keys[i]);
+//         }
+//         await clientRedis.quit();
+//         if(ungroupedReports[0]){
+//             const groupedReports = groupingReports(ungroupedReports);
+//             createReports(groupedReports);
+//         }
+//     }
+// })
 
 // Group các index trong arrayReports có số điện thoại trùng nhau đảm bảo cho mongo
 // lúc insert hay update sẽ không bị overload
-async function groupingReports(ungroupedReports) {
-    var groupedReports = ungroupedReports.reduce((reports, report) => {
-        reports[report.phoneNumber] = reports[report.phoneNumber] || [];
-        reports[report.phoneNumber].push(report);
-        return reports;
-    }, Object.create(null));
-    return groupedReports;
-}
+// async function groupingReports(ungroupedReports) {
+//     var groupedReports = ungroupedReports.reduce((reports, report) => {
+//         reports[report.phoneNumber] = reports[report.phoneNumber] || [];
+//         reports[report.phoneNumber].push(report);
+//         return reports;
+//     }, Object.create(null));
+//     return groupedReports;
+// }
 
-async function createReports(groupedReports) {
-    for (const phoneNumber in groupedReports) {
-        const isExistPhoneNumber = await PhoneNumbersSchema.findOne({
-            phoneNumber
-        })
-        if (isExistPhoneNumber) {
-            const numberOfReport = isExistPhoneNumber.reportList.length + groupedReports[phoneNumber].length;
-            const status = updateStatus(numberOfReport);
-            await PhoneNumbersSchema.updateOne({
-                phoneNumber
-            }, {
-                $push: {
-                    reportList: groupedReports[phoneNumber]
-                },
-                $set: {
-                    status
-                }
-            })
-        }
-        else {
-            const mobileCodeId = getMobileCodeId(phoneNumber.slice(0, 2));
-            await PhoneNumbersSchema.create({
-                phoneNumber,
-                mobileCodeId,
-                reportList: groupedReports[phoneNumber],
-                isDelete: false,
-                status: groupedReports[phoneNumber].length < POTENTIAL_SPAMMER ? LIST_STATUS[0] : LIST_STATUS[1],
-            })
-        }
-    }
-}
+// async function createReports(groupedReports) {
+//     for (const phoneNumber in groupedReports) {
+//         const isExistPhoneNumber = await PhoneNumbersSchema.findOne({
+//             phoneNumber
+//         })
+//         if (isExistPhoneNumber) {
+//             const numberOfReport = isExistPhoneNumber.reportList.length + groupedReports[phoneNumber].length;
+//             const status = updateStatus(numberOfReport);
+//             await PhoneNumbersSchema.updateOne({
+//                 phoneNumber
+//             }, {
+//                 $push: {
+//                     reportList: groupedReports[phoneNumber]
+//                 },
+//                 $set: {
+//                     status
+//                 }
+//             })
+//         }
+//         else {
+//             const mobileCodeId = getMobileCodeId(phoneNumber.slice(0, 2));
+//             await PhoneNumbersSchema.create({
+//                 phoneNumber,
+//                 mobileCodeId,
+//                 reportList: groupedReports[phoneNumber],
+//                 isDelete: false,
+//                 status: groupedReports[phoneNumber].length < POTENTIAL_SPAMMER ? LIST_STATUS[0] : LIST_STATUS[1],
+//             })
+//         }
+//     }
+// }
 
+async function trackingPhoneCallsInQueue(queuePhoneNumbers,){
+    
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,

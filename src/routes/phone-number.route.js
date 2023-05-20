@@ -331,5 +331,25 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
             );
     }
 })
+router.post('/:phoneNumber/incoming-call',[checkAuthorization],async(req,res)=>{
+    try{
 
+    }
+    catch(error){
+        let { message, status } = error;
+        if (!status) {
+            message = "";
+            status = "500";
+        }
+        logError(error, "/:phoneNumber/incoming-call \nmethod: POST");
+        return res
+            .status(Number(status))
+            .send(
+                responsePresenter(
+                    null,
+                    responseMeta(HTTP_RESPONSE[status], status, message)
+                )
+            );
+    }
+})
 module.exports = router;
