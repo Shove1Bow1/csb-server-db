@@ -69,17 +69,17 @@ function validateReportInput(req, res, next) {
 
 function validateOfflineCalls(req, res, next) {
     try {
-        const { offlineCalls,deviceId } = req.body;
+        const { offlineValues,deviceId } = req.body;
         if (deviceId){
             throw {message: 'deviceId not exist in body',error:'404'}
         }
-        if (offlineCalls) {
+        if (offlineValues) {
             throw { message: 'offlineCalls is not exist', error: '400' };
         }
-        if (!Array.isArray(offlineCalls)) {
+        if (!Array.isArray(offlineValues)) {
             throw { message: 'offlineCalls is not a Array', error: '404' };
         }
-        if(!offlineCalls[0]){
+        if(!offlineValues[0]){
             throw {message: 'offlineCalls doesn\'t have index value',error: '400'};
         }
         next();

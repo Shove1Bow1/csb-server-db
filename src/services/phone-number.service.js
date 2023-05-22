@@ -355,8 +355,42 @@ async function trackingPhoneCalls(phoneNumber, status) {
 //     }
 // }
 
-async function trackingPhoneCallsInQueue(queuePhoneNumbers,){
-    
+async function trackingOfflineCalls(offlineCalls, deviceId) {
+    const temp = new Date();
+    const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
+    for (const offlineCall in offlineCalls) {
+        const { phone, count } = offlineCall;
+        const resultPhoneInfo = await PhoneNumbersSchema.findOne({
+            phoneNumber: phone,
+            $or:[{status:LIST_STATUS[1]},{status:LIST_STATUS[2]}],
+        }).select('-reportList');
+        if (resultPhoneInfo) {
+            const lengthCalls = resultPhoneInfo.callTracker.length;
+            if (resultPhoneInfo.callTracker[lengthCalls - 1].dateTracker === curMonthYear) {
+                const nowTrackingCall=resultPhoneInfo.callTracker[lengthCalls-1].numberOfCall+count;
+                let status;
+                if(nowTrackingCall<SPAMMER)
+                    status=LIST_STATUS[1];
+                else
+                    status=LIST_STATUS[2];
+                await PhoneNumbersSchema.updateOne({
+                    phoneNumber: phone,
+                    "callTracker.dateTracker": curMonthYear,
+                },{$inc:{"callTracker.$.numberOfCall":count,status}})
+            }
+            else {
+                await PhoneNumbersSchema.updateOne({
+                    phoneNumber: phone,
+                },{ $push: {
+                    callTracker: {
+                        dateTracker: curMonthYear,
+                        numberOfCall: count
+                    }
+                }})
+            }
+        }
+        else continue;
+    }
 }
 module.exports = {
     findAllReports,
@@ -372,5 +406,6 @@ module.exports = {
     identicalCall,
     detailPhone,
     top10SpammerRecentReports,
-    getCreatedPhoneNumbersIn6Month
+    getCreatedPhoneNumbersIn6Month,
+    trackingOfflineCalls
 };

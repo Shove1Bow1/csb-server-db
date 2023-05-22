@@ -122,7 +122,6 @@ async function getListSpammerAgg() {
                     'phoneInfo': {
                         '$push': {
                             'phoneNumber': '$phoneNumber',
-                            'isInContact': false,
                             'isSpammer': true
                         }
                     }

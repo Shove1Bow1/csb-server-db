@@ -14,7 +14,8 @@ const { findAllReports,
     identicalCall,
     detailPhone,
     top10SpammerRecentReports, 
-    getCreatedPhoneNumbersIn6Month} = require('../services/phone-number.service');
+    getCreatedPhoneNumbersIn6Month,
+    trackingOfflineCalls} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -334,8 +335,15 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
 })
 router.post('/offline-tracking',[checkAuthorization, validateOfflineCalls],async(req,res)=>{
     try{
-        const {offlineCalls, deviceId}=req.body;
-
+        const {offlineValues, deviceId}=req.body;
+        const deviceEncryptId= encryptMobileDevice(deviceId);
+        trackingOfflineCalls(offlineValues,deviceEncryptId);
+        return res.send(200).send(
+            responsePresenter(
+                getListSpammer(),
+                responseMeta()
+            )
+        )
     }
     catch(error){
         let { message, status } = error;
