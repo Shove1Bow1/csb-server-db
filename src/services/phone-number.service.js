@@ -312,8 +312,8 @@ async function trackingPhoneCalls(phoneNumber, status) {
 //     }
 // })
 
-// Group các index trong arrayReports có số điện thoại trùng nhau đảm bảo cho mongo
-// lúc insert hay update sẽ không bị overload
+// // Group các index trong arrayReports có số điện thoại trùng nhau đảm bảo cho mongo
+// // lúc insert hay update sẽ không bị overload
 // async function groupingReports(ungroupedReports) {
 //     var groupedReports = ungroupedReports.reduce((reports, report) => {
 //         reports[report.phoneNumber] = reports[report.phoneNumber] || [];
