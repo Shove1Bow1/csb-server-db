@@ -18,7 +18,8 @@ const { findAllReports,
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
-    validateReportInput } = require('../middlewares/validator.middleware');
+    validateReportInput, 
+    validateOfflineCalls} = require('../middlewares/validator.middleware');
 const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
@@ -331,8 +332,9 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
             );
     }
 })
-router.post('/:phoneNumber/incoming-call',[checkAuthorization],async(req,res)=>{
+router.post('/offline-tracking',[checkAuthorization, validateOfflineCalls],async(req,res)=>{
     try{
+        const {offlineCalls, deviceId}=req.body;
 
     }
     catch(error){
@@ -341,7 +343,7 @@ router.post('/:phoneNumber/incoming-call',[checkAuthorization],async(req,res)=>{
             message = "";
             status = "500";
         }
-        logError(error, "/:phoneNumber/incoming-call \nmethod: POST");
+        logError(error, "/offline-tracking \nmethod: POST");
         return res
             .status(Number(status))
             .send(
