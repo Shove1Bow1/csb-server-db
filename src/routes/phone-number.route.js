@@ -338,9 +338,9 @@ router.post('/offline-tracking',[checkAuthorization, validateOfflineCalls],async
         const {offlineValues, deviceId}=req.body;
         const deviceEncryptId= encryptMobileDevice(deviceId);
         trackingOfflineCalls(offlineValues,deviceEncryptId);
-        return res.send(200).send(
+        return res.status(200).send(
             responsePresenter(
-                getListSpammer(),
+                await getListSpammer(),
                 responseMeta()
             )
         )

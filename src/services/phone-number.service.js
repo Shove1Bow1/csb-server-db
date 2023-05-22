@@ -358,25 +358,26 @@ async function trackingPhoneCalls(phoneNumber, status) {
 async function trackingOfflineCalls(offlineCalls, deviceId) {
     const temp = new Date();
     const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
-    for (const offlineCall in offlineCalls) {
-        const { phone, count } = offlineCall;
+    console.log(offlineCalls);
+    for (let index=0;index< offlineCalls.length;index++) {
+        const { phone, count } = offlineCalls[index];
         const resultPhoneInfo = await PhoneNumbersSchema.findOne({
             phoneNumber: phone,
             $or:[{status:LIST_STATUS[1]},{status:LIST_STATUS[2]}],
         }).select('-reportList');
         if (resultPhoneInfo) {
             const lengthCalls = resultPhoneInfo.callTracker.length;
-            if (resultPhoneInfo.callTracker[lengthCalls - 1].dateTracker === curMonthYear) {
+            if (resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker && resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker === curMonthYear) {
                 const nowTrackingCall=resultPhoneInfo.callTracker[lengthCalls-1].numberOfCall+count;
-                let status;
-                if(nowTrackingCall<SPAMMER)
+                let status=resultPhoneInfo.status;
+                if(nowTrackingCall<CALLS_IN_MONTH && resultPhoneInfo.reportList?.length<POTENTIAL_SPAMMER)
                     status=LIST_STATUS[1];
                 else
                     status=LIST_STATUS[2];
                 await PhoneNumbersSchema.updateOne({
                     phoneNumber: phone,
                     "callTracker.dateTracker": curMonthYear,
-                },{$inc:{"callTracker.$.numberOfCall":count,status}})
+                },{$inc:{"callTracker.$.numberOfCall":Number(count)},status})
             }
             else {
                 await PhoneNumbersSchema.updateOne({
