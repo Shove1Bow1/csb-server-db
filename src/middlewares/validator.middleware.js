@@ -46,9 +46,9 @@ function validateQueryLimitPage(req, res, next) {
     next();
 }
 
-function validateReportInput(req,res,next){
-    const {content, title, deviceId}=req.body;
-    if (!content || !title || !deviceId){
+function validateReportInput(req, res, next) {
+    const { content, title, deviceId } = req.body;
+    if (!content || !title || !deviceId) {
         return res.status(400).send(
             responsePresenter(
                 null,
@@ -56,7 +56,7 @@ function validateReportInput(req,res,next){
             )
         );
     }
-    if(String(content).length<20){
+    if (String(content).length < 20) {
         return res.status(400).send(
             responsePresenter(
                 null,
@@ -66,8 +66,38 @@ function validateReportInput(req,res,next){
     }
     next();
 }
+
+function validateOfflineCalls(req, res, next) {
+    try {
+        const { offlineValues,deviceId } = req.body;
+        if (!deviceId){
+            throw {message: 'deviceId not exist in body',error:'404'}
+        }
+        if (!offlineValues) {
+            throw { message: 'offlineValues is not exist', error: '400' };
+        }
+        if (!Array.isArray(offlineValues)) {
+            throw { message: 'offlineValues is not a Array', error: '404' };
+        }
+        if(!offlineValues[0]){
+            throw {message: 'offlineValues doesn\'t have index value',error: '400'};
+        }
+        next();
+    }
+    catch (error) {
+        const { message, status } = error;
+        console.log(error);
+        return res.status(Number(status)).send(
+            responsePresenter(
+                null,
+                responseMeta(HTTP_RESPONSE[status], status, message)
+            )
+        )
+    };
+}
 module.exports = {
     validateInputAccount,
     validateQueryLimitPage,
-    validateReportInput
+    validateReportInput,
+    validateOfflineCalls,
 };

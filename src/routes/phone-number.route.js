@@ -14,11 +14,13 @@ const { findAllReports,
     identicalCall,
     detailPhone,
     top10SpammerRecentReports, 
-    getCreatedPhoneNumbersIn6Month} = require('../services/phone-number.service');
+    getCreatedPhoneNumbersIn6Month,
+    trackingOfflineCalls} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
-    validateReportInput } = require('../middlewares/validator.middleware');
+    validateReportInput, 
+    validateOfflineCalls} = require('../middlewares/validator.middleware');
 const { logError } = require('../../config/fs.config');
 const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
@@ -331,5 +333,33 @@ router.get('/month/:month/year/:year/created/', [checkAuthorization], async (req
             );
     }
 })
-
+router.post('/offline-tracking',[checkAuthorization, validateOfflineCalls],async(req,res)=>{
+    try{
+        const {offlineValues, deviceId}=req.body;
+        const deviceEncryptId= encryptMobileDevice(deviceId);
+        trackingOfflineCalls(offlineValues,deviceEncryptId);
+        return res.status(200).send(
+            responsePresenter(
+                await getListSpammer(),
+                responseMeta()
+            )
+        )
+    }
+    catch(error){
+        let { message, status } = error;
+        if (!status) {
+            message = "";
+            status = "500";
+        }
+        logError(error, "/offline-tracking \nmethod: POST");
+        return res
+            .status(Number(status))
+            .send(
+                responsePresenter(
+                    null,
+                    responseMeta(HTTP_RESPONSE[status], status, message)
+                )
+            );
+    }
+})
 module.exports = router;
