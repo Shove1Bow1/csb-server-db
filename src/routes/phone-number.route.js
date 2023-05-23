@@ -365,35 +365,34 @@ router.get(
           )
         );
     }
-  }
-);
-router.post(
-  "/offline-tracking",
-  [checkAuthorization, validateOfflineCalls],
-  async (req, res) => {
-    try {
-      const { offlineValues, deviceId } = req.body;
-      const deviceEncryptId = encryptMobileDevice(deviceId);
-      trackingOfflineCalls(offlineValues, deviceEncryptId);
-      return res
-        .status(200)
-        .send(responsePresenter(await getListSpammer(), responseMeta()));
-    } catch (error) {
-      let { message, status } = error;
-      if (!status) {
-        message = "";
-        status = "500";
-      }
-      logError(error, "/offline-tracking \nmethod: POST");
-      return res
-        .status(Number(status))
-        .send(
-          responsePresenter(
-            null,
-            responseMeta(HTTP_RESPONSE[status], status, message)
-          )
-        );
+})
+router.post('/offline-tracking',[checkAuthorization, validateOfflineCalls],async(req,res)=>{
+    try{
+        const {offlineValues, deviceId}=req.body;
+        const deviceEncryptId= encryptMobileDevice(deviceId);
+        trackingOfflineCalls(offlineValues,deviceEncryptId);
+        return res.status(200).send(
+            responsePresenter(
+                await getListSpammer(),
+                responseMeta()
+            )
+        )
     }
-  }
-);
+    catch(error){
+        let { message, status } = error;
+        if (!status) {
+            message = "";
+            status = "500";
+        }
+        logError(error, "/offline-tracking \nmethod: POST");
+        return res
+            .status(Number(status))
+            .send(
+                responsePresenter(
+                    null,
+                    responseMeta(HTTP_RESPONSE[status], status, message)
+                )
+            );
+    }
+})
 module.exports = router;
