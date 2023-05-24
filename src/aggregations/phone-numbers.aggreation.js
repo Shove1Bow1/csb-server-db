@@ -152,6 +152,8 @@ async function getTop10SpammerReports() {
                                 '$size': '$reportList'
                             },
                             'phoneNumber': '$phoneNumber',
+                            'status': '$status',
+                            'createAt': '$createAt',
                             '_id':'$_id',
                         }
                     }
@@ -175,6 +177,8 @@ async function getTop10SpammerReports() {
             '$project': {
                 'reportSize':'$phoneInfo.reportSize',
                 'phoneNumber': '$phoneInfo.phoneNumber',
+                'status': '$phoneInfo.status',
+                'createAt': '$phoneInfo.createAt',
                 '_id':'$phoneInfo._id'
             }
         }
