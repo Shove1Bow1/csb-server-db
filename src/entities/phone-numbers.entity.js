@@ -42,9 +42,7 @@ const PhoneNumbers = new Schema({
             name: 'numberOfCall',
             index: true,
         }
-    }]
-
-    ,
+    }],
     status: {
         type: String,
         default: 'reported',
@@ -55,6 +53,11 @@ const PhoneNumbers = new Schema({
         type: Boolean,
         default: false,
         name: 'isDelete'
+    },
+    wasUpdated:{
+        type: Boolean,
+        default: false,
+        name: 'wasASpammer'
     }
 }, { timestamps: true });
 const PhoneNumbersSchema = Model('phone_numbers', PhoneNumbers);

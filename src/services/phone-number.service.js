@@ -393,6 +393,22 @@ async function trackingOfflineCalls(offlineCalls, deviceId) {
         else continue;
     }
 }
+
+async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
+  const result=await PhoneNumbersSchema.updateOne({
+    _id:Object(phoneId),
+    status: currentStatus,
+    wasASpammer: false
+  },{
+    status: newStatus, wasASpammer: true,
+  })
+  if(result.modifiedCount){
+    return "Update success";
+  }
+  else{
+    return "Update fail";
+  }
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -408,5 +424,6 @@ module.exports = {
     detailPhone,
     top10SpammerRecentReports,
     getCreatedPhoneNumbersIn6Month,
-    trackingOfflineCalls
+    trackingOfflineCalls,
+    updateStatusFromAdmin
 };
