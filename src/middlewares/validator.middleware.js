@@ -86,7 +86,6 @@ function validateOfflineCalls(req, res, next) {
     }
     catch (error) {
         const { message, status } = error;
-        console.log(error);
         return res.status(Number(status)).send(
             responsePresenter(
                 null,
@@ -94,6 +93,26 @@ function validateOfflineCalls(req, res, next) {
             )
         )
     };
+}
+
+function validateStatusFromAdmin(req,res,next){
+    try{
+        const {currentStatus,newStatus}=req.body;
+        if(currentStatus===newStatus){
+            throw {message:"currentStatus and newStatus are the same",status:"409"}
+        }
+        next();
+    }
+    catch(error){
+        const { message, status } = error;
+        return res.status(Number(status)).send(
+            responsePresenter(
+                null,
+                responseMeta(HTTP_RESPONSE[status], status, message)
+            )
+        )
+    }
+    
 }
 module.exports = {
     validateInputAccount,

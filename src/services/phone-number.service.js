@@ -423,70 +423,74 @@ async function trackingPhoneCalls(phoneNumber, status) {
 // }
 
 async function trackingOfflineCalls(offlineCalls, deviceId) {
-  const temp = new Date();
-  const curMonthYear = temp.getMonth() + 1 + "/" + temp.getFullYear();
-  console.log(offlineCalls);
-  for (let index = 0; index < offlineCalls.length; index++) {
-    const { phone, count } = offlineCalls[index];
-    const resultPhoneInfo = await PhoneNumbersSchema.findOne({
-      phoneNumber: phone,
-      $or: [{ status: LIST_STATUS[1] }, { status: LIST_STATUS[2] }],
-    }).select("-reportList");
-    if (resultPhoneInfo) {
-      const lengthCalls = resultPhoneInfo.callTracker.length;
-      if (
-        resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker &&
-        resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker ===
-          curMonthYear
-      ) {
-        const nowTrackingCall =
-          resultPhoneInfo.callTracker[lengthCalls - 1].numberOfCall + count;
-        let status = resultPhoneInfo.status;
-        if (
-          nowTrackingCall < CALLS_IN_MONTH &&
-          resultPhoneInfo.reportList?.length < POTENTIAL_SPAMMER
-        )
-          status = LIST_STATUS[1];
-        else status = LIST_STATUS[2];
-        await PhoneNumbersSchema.updateOne(
-          {
+    const temp = new Date();
+    const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
+    console.log(offlineCalls);
+    for (let index=0;index< offlineCalls.length;index++) {
+        const { phone, count } = offlineCalls[index];
+        const resultPhoneInfo = await PhoneNumbersSchema.findOne({
             phoneNumber: phone,
-            "callTracker.dateTracker": curMonthYear,
-          },
-          { $inc: { "callTracker.$.numberOfCall": Number(count) }, status }
-        );
-      } else {
-        await PhoneNumbersSchema.updateOne(
-          {
-            phoneNumber: phone,
-          },
-          {
-            $push: {
-              callTracker: {
-                dateTracker: curMonthYear,
-                numberOfCall: count,
-              },
-            },
-          }
-        );
-      }
-    } else continue;
+            $or:[{status:LIST_STATUS[1]},{status:LIST_STATUS[2]}],
+        }).select('-reportList');
+        if (resultPhoneInfo) {
+            const lengthCalls = resultPhoneInfo.callTracker.length;
+            if (resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker && resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker === curMonthYear) {
+                const nowTrackingCall=resultPhoneInfo.callTracker[lengthCalls-1].numberOfCall+count;
+                let status=resultPhoneInfo.status;
+                if(nowTrackingCall<CALLS_IN_MONTH && resultPhoneInfo.reportList?.length<POTENTIAL_SPAMMER)
+                    status=LIST_STATUS[1];
+                else
+                    status=LIST_STATUS[2];
+                await PhoneNumbersSchema.updateOne({
+                    phoneNumber: phone,
+                    "callTracker.dateTracker": curMonthYear,
+                },{$inc:{"callTracker.$.numberOfCall":Number(count)},status})
+            }
+            else {
+                await PhoneNumbersSchema.updateOne({
+                    phoneNumber: phone,
+                },{ $push: {
+                    callTracker: {
+                        dateTracker: curMonthYear,
+                        numberOfCall: count
+                    }
+                }})
+            }
+        }
+        else continue;
+    }
+}
+
+async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
+  const result=await PhoneNumbersSchema.updateOne({
+    _id:Object(phoneId),
+    status: currentStatus,
+    wasASpammer: false
+  },{
+    status: newStatus, wasASpammer: true,
+  })
+  if(result.modifiedCount){
+    return "Update success";
+  }
+  else{
+    return "Update fail";
   }
 }
 module.exports = {
-  findAllReports,
-  getAllReportNumbers,
-  getReportInFiveMonth,
-  getReportsByMonthSer,
-  getReportsByPhoneNumber,
-  getCodeAndSevenNumber,
-  createReport,
-  getListSpammer,
-  getTop10SpammerByTopReports,
-  suggestSearching,
-  identicalCall,
-  detailPhone,
-  top10SpammerRecentReports,
-  getCreatedPhoneNumbersIn6Month,
-  trackingOfflineCalls,
+    findAllReports,
+    getAllReportNumbers,
+    getReportInFiveMonth,
+    getReportsByMonthSer,
+    getReportsByPhoneNumber,
+    getCodeAndSevenNumber,
+    createReport,
+    getListSpammer,
+    getTop10SpammerByTopReports,
+    suggestSearching,
+    identicalCall,
+    detailPhone,
+    top10SpammerRecentReports,
+    getCreatedPhoneNumbersIn6Month,
+    trackingOfflineCalls,
+    updateStatusFromAdmin
 };
