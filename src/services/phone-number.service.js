@@ -465,9 +465,9 @@ async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
   const result=await PhoneNumbersSchema.updateOne({
     _id:Object(phoneId),
     status: currentStatus,
-    wasASpammer: false
+    wasUpdated: false
   },{
-    status: newStatus, wasASpammer: true,
+    status: newStatus, wasUpdated: true,
   })
   if(result.modifiedCount){
     return "Update success";
