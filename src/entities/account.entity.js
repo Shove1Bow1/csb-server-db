@@ -7,7 +7,17 @@ const Account=new Schema({
     password:{
         type: String,
         name: "password",
-    }
+    },
+    trustedMachine:[{
+        machineIP:{
+            type: String,
+            name: "machineIP"
+        },
+        jwtKey:{
+            type: String,
+            name: "authorizeKey"
+        }
+    }]
 },{timestamps:true});
 const AccountSchema=Model('accounts', Account);
 module.exports={

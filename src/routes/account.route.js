@@ -8,7 +8,9 @@ const { responseMeta } = require('../../config/meta.config');
 router.post('/login', [validateInputAccount], async (req, res) => {
     try {
         const {name,password}=req.body;
-        const account = await checkAccount(name,password)
+        const machineIP=req.headers['x-forwarded-for']|| req.socket.remoteAddress;
+        console.log(machineIP);
+        const account = await checkAccount(name,password,machineIP)
         return res.send(responsePresenter(
             { token: account },
             responseMeta()
