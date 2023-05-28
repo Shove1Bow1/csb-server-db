@@ -149,7 +149,7 @@ async function getTop10SpammerReports() {
                     'phoneInfo': {
                         '$push': {
                             'reportSize': {
-                                '$size': '$reportList'
+                                '$size': {'$ifNull':['$reportList',[]]}
                             },
                             'phoneNumber': '$phoneNumber',
                             'status': '$status',
@@ -184,6 +184,7 @@ async function getTop10SpammerReports() {
         }
     ]
     );
+    console.log(top10Spammer)
     return top10Spammer;
 }
 
