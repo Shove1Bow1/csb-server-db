@@ -395,8 +395,9 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
 router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
   try {
     const { phoneNumber } = req.params;
+    const { reason }=req.body;
     return res.send(responsePresenter(
-      await updateStateUnban(phoneNumber, true),
+      await updateStateUnban(phoneNumber, true, reason),
       responseMeta()
     ));
   }

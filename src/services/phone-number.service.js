@@ -19,7 +19,7 @@ const { ProvidersSchema } = require("../entities/providers.entity");
 const cron = require("node-cron");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
-const { reportWithSlack } = require("../../config/slack.config");
+const { reportWithSlack,requestUnbanNumberWithSlack } = require("../../config/slack.config");
 async function findAllReports(phoneNumber, code) {
   try {
     const result = await PhoneNumbersSchema.find({
@@ -479,7 +479,7 @@ async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
   }
 }
 
-async function updateStateUnban(phoneNumber, stateUnban){
+async function updateStateUnban(phoneNumber, stateUnban,reason){
   const result=await PhoneNumbersSchema.updateOne({
     phoneNumber,
     status: LIST_STATUS[2],
@@ -487,6 +487,7 @@ async function updateStateUnban(phoneNumber, stateUnban){
     stateUnban: false
   },{stateUnban});
   if(result.modifiedCount){
+    requestUnbanNumberWithSlack(phoneNumber, reason);
     return 1;
   }
   return 0;
