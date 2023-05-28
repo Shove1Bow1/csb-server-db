@@ -61,6 +61,7 @@ const PhoneNumbers = new Schema({
     }
 }, { timestamps: true });
 const PhoneNumbersSchema = Model('phone_numbers', PhoneNumbers);
+
 PhoneNumbersSchema.createIndexes({
     phoneNumber: "text"
 })
