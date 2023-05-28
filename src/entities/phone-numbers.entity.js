@@ -54,6 +54,11 @@ const PhoneNumbers = new Schema({
         default: false,
         name: 'isDelete'
     },
+    stateUnban:{
+        type: Boolean,
+        default: false,
+        name: 'stateUnban'
+    },
     wasUpdated:{
         type: Boolean,
         default: false,

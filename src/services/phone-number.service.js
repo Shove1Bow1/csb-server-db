@@ -19,7 +19,7 @@ const { ProvidersSchema } = require("../entities/providers.entity");
 const cron = require("node-cron");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
-const { reportWithSlack } = require("../../config/slack.config");
+const { reportWithSlack,requestUnbanNumberWithSlack } = require("../../config/slack.config");
 async function findAllReports(phoneNumber, code) {
   try {
     const result = await PhoneNumbersSchema.find({
@@ -463,13 +463,14 @@ async function trackingOfflineCalls(offlineCalls, deviceId) {
     }
 }
 
-async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
+async function updateStatusFromAdmin(phoneId){
   const result=await PhoneNumbersSchema.updateOne({
     _id:Object(phoneId),
-    status: currentStatus,
-    wasUpdated: false
+    status: LIST_STATUS[2],
+    wasUpdated: false,
+    stateUnban: true,
   },{
-    status: newStatus, wasUpdated: true,
+    status: LIST_STATUS[1], wasUpdated: true,
   })
   if(result.modifiedCount){
     return 1;
@@ -479,7 +480,19 @@ async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
   }
 }
 
-
+async function updateStateUnban(phoneNumber, stateUnban,reason){
+  const result=await PhoneNumbersSchema.updateOne({
+    phoneNumber,
+    status: LIST_STATUS[2],
+    wasUpdated: false,
+    stateUnban: false
+  },{stateUnban});
+  if(result.modifiedCount){
+    requestUnbanNumberWithSlack(phoneNumber, reason);
+    return 1;
+  }
+  return 0;
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -496,5 +509,6 @@ module.exports = {
     top10SpammerRecentReports,
     getCreatedPhoneNumbersIn6Month,
     trackingOfflineCalls,
-    updateStatusFromAdmin
+    updateStatusFromAdmin,
+    updateStateUnban
 };

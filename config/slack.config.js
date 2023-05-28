@@ -9,7 +9,7 @@ function reportWithSlack(phoneNumber){
         channel: "csb-notifications"
     });
 }
-function unbanNumberWithSlack(phoneNumber,reason){
+function requestUnbanNumberWithSlack(phoneNumber,reason){
     slackClient.chat.postMessage({
         text:"Số điện thoại "+phoneNumber+" xin được hạ xuống potential-spammer.\nLý do: "+reason,
         channel: "csb-unban"
@@ -17,5 +17,5 @@ function unbanNumberWithSlack(phoneNumber,reason){
 }
 module.exports={
     reportWithSlack,
-    unbanNumberWithSlack
+    requestUnbanNumberWithSlack
 }
