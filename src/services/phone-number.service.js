@@ -19,6 +19,7 @@ const { ProvidersSchema } = require("../entities/providers.entity");
 const cron = require("node-cron");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
+const { reportWithSlack } = require("../../config/slack.config");
 async function findAllReports(phoneNumber, code) {
   try {
     const result = await PhoneNumbersSchema.find({
@@ -116,6 +117,7 @@ async function createReport({
       "reportList.deviceCodeId": deviceId,
     });
     if (!deviceExist[0]) {
+      reportWithSlack(phoneNumber);
       return await PhoneNumbersSchema.updateOne(
         {
           phoneNumber,
@@ -470,12 +472,14 @@ async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
     status: newStatus, wasUpdated: true,
   })
   if(result.modifiedCount){
-    return "Update success";
+    return 1;
   }
   else{
-    return "Update fail";
+    return 0;
   }
 }
+
+
 module.exports = {
     findAllReports,
     getAllReportNumbers,
