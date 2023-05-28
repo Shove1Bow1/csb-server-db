@@ -391,4 +391,30 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
       );
   }
 })
+
+router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
+  try {
+    const { phoneNumber } = req.params;
+    return res.send(responsePresenter(
+      await updateStateUnban(phoneNumber, true),
+      responseMeta()
+    ));
+  }
+  catch (error) {
+    let { message, status } = error;
+    if (!status) {
+      message = "";
+      status = "500";
+    }
+    logError(error, "/:phoneNumber/uban \nmethod: PATCH");
+    return res
+      .status(Number(status))
+      .send(
+        responsePresenter(
+          null,
+          responseMeta(HTTP_RESPONSE[status], status, message)
+        )
+      );
+  }
+})
 module.exports = router;

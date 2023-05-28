@@ -479,7 +479,18 @@ async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
   }
 }
 
-
+async function updateStateUnban(phoneNumber, stateUnban){
+  const result=await PhoneNumbersSchema.updateOne({
+    phoneNumber,
+    status: LIST_STATUS[2],
+    wasUpdated: false,
+    stateUnban: false
+  },{stateUnban});
+  if(result.modifiedCount){
+    return 1;
+  }
+  return 0;
+}
 module.exports = {
     findAllReports,
     getAllReportNumbers,
@@ -496,5 +507,6 @@ module.exports = {
     top10SpammerRecentReports,
     getCreatedPhoneNumbersIn6Month,
     trackingOfflineCalls,
-    updateStatusFromAdmin
+    updateStatusFromAdmin,
+    updateStateUnban
 };
