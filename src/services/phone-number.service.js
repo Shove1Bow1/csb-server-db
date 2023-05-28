@@ -463,13 +463,14 @@ async function trackingOfflineCalls(offlineCalls, deviceId) {
     }
 }
 
-async function updateStatusFromAdmin(phoneId, currentStatus, newStatus){
+async function updateStatusFromAdmin(phoneId){
   const result=await PhoneNumbersSchema.updateOne({
     _id:Object(phoneId),
-    status: currentStatus,
-    wasUpdated: false
+    status: LIST_STATUS[2],
+    wasUpdated: false,
+    stateUnban: true,
   },{
-    status: newStatus, wasUpdated: true,
+    status: LIST_STATUS[1], wasUpdated: true,
   })
   if(result.modifiedCount){
     return 1;
