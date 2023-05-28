@@ -262,13 +262,13 @@ async function rejectReport(phoneNumber) {}
 async function detailPhone(id) {
   const phoneNumber = await PhoneNumbersSchema.findOne({
     _id: id,
-  });
+  },);
   const mobileCode = await MobileCodesSchema.findOne({
     _id: phoneNumber.mobileCodeId,
   });
   const provider = await ProvidersSchema.findById({
     _id: mobileCode.providerId,
-  });
+  }).select("-_id");
   return phoneNumber
     ? { ...phoneNumber._doc, ...provider._doc, code: mobileCode.code }
     : {};
