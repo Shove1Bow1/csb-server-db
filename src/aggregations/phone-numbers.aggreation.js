@@ -184,7 +184,6 @@ async function getTop10SpammerReports() {
         }
     ]
     );
-    console.log(top10Spammer)
     return top10Spammer;
 }
 

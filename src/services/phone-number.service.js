@@ -427,7 +427,6 @@ async function trackingPhoneCalls(phoneNumber, status) {
 async function trackingOfflineCalls(offlineCalls, deviceId) {
     const temp = new Date();
     const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
-    console.log(offlineCalls);
     for (let index=0;index< offlineCalls.length;index++) {
         const { phone, count } = offlineCalls[index];
         const resultPhoneInfo = await PhoneNumbersSchema.findOne({
