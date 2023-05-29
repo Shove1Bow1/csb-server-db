@@ -149,12 +149,12 @@ async function getTop10SpammerReports() {
                     'phoneInfo': {
                         '$push': {
                             'reportSize': {
-                                '$size': {'$ifNull':['$reportList',[]]}
+                                '$size': { '$ifNull': ['$reportList', []] }
                             },
                             'phoneNumber': '$phoneNumber',
                             'status': '$status',
                             'createAt': '$createAt',
-                            '_id':'$_id',
+                            '_id': '$_id',
                         }
                     }
                 }
@@ -175,15 +175,14 @@ async function getTop10SpammerReports() {
             '$limit': 10
         }, {
             '$project': {
-                'reportSize':'$phoneInfo.reportSize',
+                'reportSize': '$phoneInfo.reportSize',
                 'phoneNumber': '$phoneInfo.phoneNumber',
                 'status': '$phoneInfo.status',
                 'createAt': '$phoneInfo.createAt',
-                '_id':'$phoneInfo._id'
+                '_id': '$phoneInfo._id'
             }
         }
-    ]
-    );
+    ]);
     return top10Spammer;
 }
 

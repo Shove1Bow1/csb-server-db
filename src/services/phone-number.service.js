@@ -197,7 +197,7 @@ async function suggestSearching(phoneNumber, type) {
       {
         phoneNumber: new RegExp(phoneNumber, "i"),
       },
-      { phoneNumber: 1, status: 1, reportList: 1, callTracker: 1 },
+      { phoneNumber: 1, status: 1, reportList: 1, callTracker: 1, wasUpdated: 1, stateUnban:1 },
       { limit: 50 }
     );
   } else {

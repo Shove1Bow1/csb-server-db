@@ -5,7 +5,7 @@ async function logError(content, api) {
     if(!fs.existsSync(logDir)){
         fs.mkdirSync(logDir);
     }
-    const value = "\nError in " + await content + "\nAPI " + api + "\nTime stamp " + (new Date()).getTime() + "\n";
+    const value = "\nError in " + {... await content} + "\nAPI " + api + "\nTime stamp " + (new Date()).getTime() + "\n";
     if (fs.existsSync(logPath)) {
         fs.appendFileSync(logPath, value);
     }
