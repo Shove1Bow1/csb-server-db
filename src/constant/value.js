@@ -1,6 +1,6 @@
 const POTENTIAL_SPAMMER=20;
 const SPAMMER=50;
-const CALLS_IN_MONTH=7200;
+const CALLS_IN_MONTH=1440;
 const LIST_STATUS=['unknown','potential-spammer','spammer']
 
 module.exports={
