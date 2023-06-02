@@ -8,7 +8,7 @@ async function checkAccount(name, password) {
     const passwordEncryption = encryptPassword(password);
     const account = await AccountSchema.findOne({
         name,
-        passwordEncryption
+        password: passwordEncryption
     })
     if (account) {
         return encryptToJWT(name);
