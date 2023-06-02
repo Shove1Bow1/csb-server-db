@@ -513,6 +513,17 @@ async function getListUnban(limit,page){
   return result;
 }
 
+async function cancelUnban(phoneNumber){
+  const result=await PhoneNumbersSchema.updateOne({
+    phoneNumber,
+    stateUnban: true,
+    wasUpdated: false
+  },{stateUnban: false})
+  if(result.modifiedCount){
+    return 1;
+  }
+  return 0;
+}
 module.exports = {
     getReportInFiveMonth,
     getReportsByMonthSer,
@@ -529,5 +540,6 @@ module.exports = {
     trackingOfflineCalls,
     updateStatusFromAdmin,
     updateStateUnban,
-    getListUnban
+    getListUnban,
+    cancelUnban
 };
