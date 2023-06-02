@@ -13,10 +13,7 @@ async function checkAccount(name, password) {
     if (account) {
         return encryptToJWT(name);
     }
-    throw responsePresenter(
-        null,
-        responseMeta( HTTP_RESPONSE['404'], 404,'Name or Password is not correct')
-    )
+    throw {status: '404',message: 'Name or Password is not correct'}
 }
 
 module.exports = {

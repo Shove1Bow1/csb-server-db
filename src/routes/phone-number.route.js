@@ -48,7 +48,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
     return res.send(
       responsePresenter(
         null,
-        responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
+        responseMeta(HTTP_RESPONSE[String(error.status)], error.status,error.message )
       )
     );
   }
