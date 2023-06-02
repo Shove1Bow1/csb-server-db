@@ -18,7 +18,8 @@ const { findAllReports,
   trackingOfflineCalls,
   updateStatusFromAdmin,
   updateStateUnban, 
-  getListUnban} = require('../services/phone-number.service');
+  getListUnban,
+  cancelUnban} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -440,6 +441,34 @@ router.get('/unban', [checkJWTToken,validateQueryLimitPage], async (req, res) =>
       status = "500";
     }
     logError(error, "/unban \nmethod: GET");
+    return res
+      .status(Number(status))
+      .send(
+        responsePresenter(
+          null,
+          responseMeta(HTTP_RESPONSE[status], status, message)
+        )
+      );
+  }
+})
+router.patch('/:phoneNumber/unban/cancel',[checkJWTToken],async (req,res)=>{
+  try{
+    const {phoneNumber}=req.params;
+    getCodeAndSevenNumber(phoneNumber);
+    return res.send(
+      responsePresenter(
+        await cancelUnban(phoneNumber),
+        responseMeta()
+      )
+    )
+  }
+  catch(error){
+    let { message, status } = error;
+    if (!status) {
+      message = "";
+      status = "500";
+    }
+    logError(error, "/:phoneNumber/unban/cancel \nmethod: GET");
     return res
       .status(Number(status))
       .send(
