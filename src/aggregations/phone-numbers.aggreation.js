@@ -230,6 +230,10 @@ async function getTotalNumbersCreateIn6Month(month, year) {
     );
     return totalNumbers;
 }
+
+async function getListUnban(){
+    
+}
 module.exports = {
     getQuanityReportInFiveMonth,
     getReportsByMonth,

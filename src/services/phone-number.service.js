@@ -192,6 +192,19 @@ async function suggestSearching(phoneNumber, type) {
       { limit: 10 }
     );
   }
+  if(type==="4"){
+    result = await PhoneNumbersSchema.find(
+      {phoneNumber: new RegExp(phoneNumber),
+        status: LIST_STATUS[1]
+      }
+    ).select("-reportList -callTracker")
+  }
+  if(type==="5"){
+    result = await PhoneNumbersSchema.find({
+      phoneNumber: new RegExp(phoneNumber),
+      status: LIST_STATUS[2]
+    }).select("-reportList -callTracker")
+  }
   if (type === "3") {
     result = await PhoneNumbersSchema.find(
       {
@@ -297,7 +310,8 @@ async function getCreatedPhoneNumbersIn6Month(month, year) {
     result[3].count +
     result[4].count +
     result[5].count;
-  return result ? { total, sixMonth: [...result] } : [];
+  const allNumbers= await PhoneNumbersSchema.estimatedDocumentCount();
+  return result ? { total, sixMonth: [...result], allNumbers } : [];
 }
 
 async function trackingPhoneCalls(phoneNumber, status) {
@@ -492,6 +506,8 @@ async function updateStateUnban(phoneNumber, stateUnban,reason){
   }
   return 0;
 }
+
+
 module.exports = {
     findAllReports,
     getAllReportNumbers,
