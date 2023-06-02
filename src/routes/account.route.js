@@ -20,7 +20,7 @@ router.post('/login', [validateInputAccount], async (req, res) => {
         return res.status(404).send(
             responsePresenter(
                 null,
-                responseMeta(error?.message, error?.status, HTTP_RESPONSE[String(error.status)])
+                responseMeta(HTTP_RESPONSE[String(error.status)], error?.status, error?.message)
               )
         );
     }
