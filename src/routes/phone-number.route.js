@@ -368,11 +368,11 @@ router.post('/offline-tracking', [checkAuthorization, validateOfflineCalls], asy
   }
 })
 
-router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
+router.patch('/:phoneNumber/unban/accept', [checkJWTToken], async (req, res) => {
   try {
-    const { phoneId } = req.params;
+    const { phoneNumber } = req.params;
     res.send(responsePresenter(
-      await updateStatusFromAdmin(phoneId, currentStatus, newStatus),
+      await updateStatusFromAdmin(phoneNumber),
       responseMeta()
     ));
   }
@@ -382,7 +382,7 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
       message = "";
       status = "500";
     }
-    logError(error, "/detail/:phoneId \nmethod: PATCH");
+    logError(error, "/:phoneNumber/unban/accept \nmethod: PATCH");
     return res
       .status(Number(status))
       .send(

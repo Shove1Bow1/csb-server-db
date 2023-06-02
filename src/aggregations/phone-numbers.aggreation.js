@@ -235,7 +235,8 @@ async function getListUnbanAggregate(limit,page) {
     const listOfUnban = await PhoneNumbersSchema.aggregate([
         {
             '$match': {
-                'stateUnban': true
+                'stateUnban': true,
+                'wasUpdated':false
             }
         }, {
             '$project': {
