@@ -16,8 +16,8 @@ const { findAllReports,
   top10SpammerRecentReports,
   getCreatedPhoneNumbersIn6Month,
   trackingOfflineCalls,
-  updateStatusFromAdmin, 
-  updateStateUnban} = require('../services/phone-number.service');
+  updateStatusFromAdmin,
+  updateStateUnban } = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -395,9 +395,9 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
 router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
   try {
     const { phoneNumber } = req.params;
-    const { reason }=req.body;
-    if(!reason){
-      throw {message:"reason not exist",status:"400"}
+    const { reason } = req.body;
+    if (!reason) {
+      throw { message: "reason not exist", status: "400" }
     }
     return res.send(responsePresenter(
       await updateStateUnban(phoneNumber, true, reason),
@@ -411,6 +411,27 @@ router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
       status = "500";
     }
     logError(error, "/:phoneNumber/unban \nmethod: PATCH");
+    return res
+      .status(Number(status))
+      .send(
+        responsePresenter(
+          null,
+          responseMeta(HTTP_RESPONSE[status], status, message)
+        )
+      );
+  }
+})
+router.get('/unban', [checkAuthorization], async (req, res) => {
+  try {
+    
+  }
+  catch (error) {
+    let { message, status } = error;
+    if (!status) {
+      message = "";
+      status = "500";
+    }
+    logError(error, "/unban \nmethod: GET");
     return res
       .status(Number(status))
       .send(
