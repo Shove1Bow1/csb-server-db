@@ -15,7 +15,7 @@ async function checkAccount(name, password) {
     }
     throw responsePresenter(
         null,
-        responseMeta('Name or Password is not correct', 404, HTTP_RESPONSE['404'])
+        responseMeta( HTTP_RESPONSE['404'], 404,'Name or Password is not correct')
     )
 }
 
