@@ -382,7 +382,6 @@ router.patch('/:phoneNumber/unban/accept', [checkJWTToken], async (req, res) => 
       message = "";
       status = "500";
     }
-    console.log(error);
     logError(error, "/:phoneNumber/unban/accept \nmethod: PATCH");
     return res
       .status(Number(status))
