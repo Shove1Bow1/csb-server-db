@@ -1,7 +1,9 @@
+const { error } = require('console');
 const fs = require('fs');
 const logPath='./logs/error.txt';
 const logDir='./logs';
 async function logError(content, api) {
+    console.log(error);
     if(!fs.existsSync(logDir)){
         fs.mkdirSync(logDir);
     }

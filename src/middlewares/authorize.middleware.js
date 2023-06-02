@@ -20,7 +20,6 @@ function checkAuthorization(req, res, next) {
 }
 
 function checkJWTToken(req, res, next) {
-
     if (!jwt.verify(String(req.headers.token), JWT_KEY)) {
         return res.status('400').send(
             responsePresenter(
