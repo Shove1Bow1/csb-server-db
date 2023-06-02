@@ -17,7 +17,8 @@ const { findAllReports,
   getCreatedPhoneNumbersIn6Month,
   trackingOfflineCalls,
   updateStatusFromAdmin,
-  updateStateUnban } = require('../services/phone-number.service');
+  updateStateUnban, 
+  getListUnban} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -47,7 +48,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
     return res.send(
       responsePresenter(
         null,
-        responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
+        responseMeta(HTTP_RESPONSE[String(error.status)], error.status,error.message )
       )
     );
   }
@@ -421,9 +422,16 @@ router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
       );
   }
 })
-router.get('/unban', [checkAuthorization], async (req, res) => {
+router.get('/unban', [checkJWTToken,validateQueryLimitPage], async (req, res) => {
   try {
-    
+    const {page, limit}=req;
+    const result =await getListUnban(page,limit);
+    return res.status(200).send(
+      responsePresenter(
+        result,
+        responseMeta()
+      )
+    )
   }
   catch (error) {
     let { message, status } = error;

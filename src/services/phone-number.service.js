@@ -6,6 +6,7 @@ const {
   getListSpammerAgg,
   getTop10SpammerReports,
   getTotalNumbersCreateIn6Month,
+  getListUnbanAggregate,
 } = require("../aggregations/phone-numbers.aggreation");
 const { CALLS_IN_MONTH } = require("../constant/value");
 const {
@@ -507,10 +508,12 @@ async function updateStateUnban(phoneNumber, stateUnban,reason){
   return 0;
 }
 
+async function getListUnban(limit,page){
+  const result=await getListUnbanAggregate(limit,page);
+  return result;
+}
 
 module.exports = {
-    findAllReports,
-    getAllReportNumbers,
     getReportInFiveMonth,
     getReportsByMonthSer,
     getReportsByPhoneNumber,
@@ -525,5 +528,6 @@ module.exports = {
     getCreatedPhoneNumbersIn6Month,
     trackingOfflineCalls,
     updateStatusFromAdmin,
-    updateStateUnban
+    updateStateUnban,
+    getListUnban
 };

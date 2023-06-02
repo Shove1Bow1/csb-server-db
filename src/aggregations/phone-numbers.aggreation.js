@@ -231,8 +231,31 @@ async function getTotalNumbersCreateIn6Month(month, year) {
     return totalNumbers;
 }
 
-async function getListUnban(){
-    
+async function getListUnbanAggregate(limit,page) {
+    const listOfUnban = await PhoneNumbersSchema.aggregate([
+        {
+            '$match': {
+                'stateUnban': true
+            }
+        }, {
+            '$project': {
+                '_id': '$_id',
+                'phoneNumber': '$phoneNumber',
+                'totalReport': {
+                    '$size': '$reportList'
+                },
+                'averageCall': {
+                    '$avg': '$callTracker.numberOfCall'
+                },
+                'status': '$status'
+            }
+        }, {
+            '$limit': limit || 25
+        }, {
+            '$skip': page*limit || 0
+        }
+    ]);
+    return listOfUnban;
 }
 module.exports = {
     getQuanityReportInFiveMonth,
@@ -240,5 +263,6 @@ module.exports = {
     getListReportsByPhoneNumber,
     getListSpammerAgg,
     getTop10SpammerReports,
-    getTotalNumbersCreateIn6Month
+    getTotalNumbersCreateIn6Month,
+    getListUnbanAggregate
 };
