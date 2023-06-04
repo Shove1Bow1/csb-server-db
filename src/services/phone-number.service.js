@@ -326,8 +326,9 @@ async function trackingPhoneCalls(phoneNumber, status) {
   }).select("-reportList -createdAt -updatedAt");
   if (status === LIST_STATUS[1]) {
     if (phoneNumberData) {
-      phoneNumberData.callTracker[0].numberOfCall++;
-      if (phoneNumberData.callTracker[0].numberOfCall >= CALLS_IN_MONTH) {
+      const callTrackerLength=phoneNumberData.callTracker.length-1;
+      phoneNumberData.callTracker[callTrackerLength].numberOfCall++;
+      if (phoneNumberData.callTracker[callTrackerLength].numberOfCall >= CALLS_IN_MONTH) {
         phoneNumberData.status = LIST_STATUS[2];
       }
       await PhoneNumbersSchema.updateOne(
