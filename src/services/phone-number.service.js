@@ -279,7 +279,8 @@ async function rejectReport(phoneNumber) { }
 async function detailPhone(id) {
   const phoneNumber = await PhoneNumbersSchema.findOne({
     _id: id,
-  },);
+  });
+  phoneNumber.reportList.reverse();
   const mobileCode = await MobileCodesSchema.findOne({
     _id: phoneNumber.mobileCodeId,
   });
