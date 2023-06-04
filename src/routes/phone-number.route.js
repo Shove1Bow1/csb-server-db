@@ -16,8 +16,10 @@ const { findAllReports,
   top10SpammerRecentReports,
   getCreatedPhoneNumbersIn6Month,
   trackingOfflineCalls,
-  updateStatusFromAdmin, 
-  updateStateUnban} = require('../services/phone-number.service');
+  updateStatusFromAdmin,
+  updateStateUnban, 
+  getListUnban,
+  cancelUnban} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -47,7 +49,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
     return res.send(
       responsePresenter(
         null,
-        responseMeta(error.message, error.status, HTTP_RESPONSE[String(error.status)])
+        responseMeta(HTTP_RESPONSE[String(error.status)], error.status,error.message )
       )
     );
   }
@@ -366,11 +368,11 @@ router.post('/offline-tracking', [checkAuthorization, validateOfflineCalls], asy
   }
 })
 
-router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
+router.patch('/:phoneNumber/unban/accept', [checkJWTToken], async (req, res) => {
   try {
-    const { phoneId } = req.params;
+    const { phoneNumber } = req.params;
     res.send(responsePresenter(
-      await updateStatusFromAdmin(phoneId, currentStatus, newStatus),
+      await updateStatusFromAdmin(phoneNumber),
       responseMeta()
     ));
   }
@@ -380,7 +382,7 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
       message = "";
       status = "500";
     }
-    logError(error, "/detail/:phoneId \nmethod: PATCH");
+    logError(error, "/:phoneNumber/unban/accept \nmethod: PATCH");
     return res
       .status(Number(status))
       .send(
@@ -395,9 +397,9 @@ router.patch('/detail/:phoneId', [checkJWTToken], async (req, res) => {
 router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
   try {
     const { phoneNumber } = req.params;
-    const { reason }=req.body;
-    if(!reason){
-      throw {message:"reason not exist",status:"400"}
+    const { reason } = req.body;
+    if (!reason) {
+      throw { message: "reason not exist", status: "400" }
     }
     return res.send(responsePresenter(
       await updateStateUnban(phoneNumber, true, reason),
@@ -411,6 +413,62 @@ router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
       status = "500";
     }
     logError(error, "/:phoneNumber/unban \nmethod: PATCH");
+    return res
+      .status(Number(status))
+      .send(
+        responsePresenter(
+          null,
+          responseMeta(HTTP_RESPONSE[status], status, message)
+        )
+      );
+  }
+})
+router.get('/unban', [checkJWTToken,validateQueryLimitPage], async (req, res) => {
+  try {
+    const {page, limit}=req;
+    const result =await getListUnban(page,limit);
+    return res.status(200).send(
+      responsePresenter(
+        result,
+        responseMeta()
+      )
+    )
+  }
+  catch (error) {
+    let { message, status } = error;
+    if (!status) {
+      message = "";
+      status = "500";
+    }
+    logError(error, "/unban \nmethod: GET");
+    return res
+      .status(Number(status))
+      .send(
+        responsePresenter(
+          null,
+          responseMeta(HTTP_RESPONSE[status], status, message)
+        )
+      );
+  }
+})
+router.patch('/:phoneNumber/unban/cancel',[checkJWTToken],async (req,res)=>{
+  try{
+    const {phoneNumber}=req.params;
+    getCodeAndSevenNumber(phoneNumber);
+    return res.send(
+      responsePresenter(
+        await cancelUnban(phoneNumber),
+        responseMeta()
+      )
+    )
+  }
+  catch(error){
+    let { message, status } = error;
+    if (!status) {
+      message = "";
+      status = "500";
+    }
+    logError(error, "/:phoneNumber/unban/cancel \nmethod: GET");
     return res
       .status(Number(status))
       .send(

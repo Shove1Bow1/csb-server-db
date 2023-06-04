@@ -7,14 +7,13 @@ const { encryptToJWT, encryptPassword } = require("../utils/encrypt");
 async function checkAccount(name, password) {
     const passwordEncryption = encryptPassword(password);
     const account = await AccountSchema.findOne({
+        name,
+        password: passwordEncryption
     })
     if (account) {
         return encryptToJWT(name);
     }
-    throw responsePresenter(
-        null,
-        responseMeta('Name or Password is not correct', 404, HTTP_RESPONSE['404'])
-    )
+    throw {status: '404',message: 'Name or Password is not correct'}
 }
 
 module.exports = {
