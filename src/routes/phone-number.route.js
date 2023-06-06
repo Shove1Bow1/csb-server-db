@@ -294,7 +294,6 @@ router.get("/detail/:id", [checkAuthorization], async (req, res) => {
       message = "";
       status = "500";
     }
-    console.log(error);
     logError(error, "/detail/:id \nmethod: GET");
     return res
       .status(Number(status))

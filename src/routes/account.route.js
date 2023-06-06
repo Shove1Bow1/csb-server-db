@@ -17,7 +17,7 @@ router.post('/login', [validateInputAccount], async (req, res) => {
     }
     catch (error) {
         logError(error, '/admin/login')
-        return res.status(404).send(
+        return res.send(
             responsePresenter(
                 null,
                 responseMeta(HTTP_RESPONSE[String(error.status)], error?.status, error?.message)
