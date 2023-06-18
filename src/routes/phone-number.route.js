@@ -17,9 +17,9 @@ const { findAllReports,
   getCreatedPhoneNumbersIn6Month,
   trackingOfflineCalls,
   updateStatusFromAdmin,
-  updateStateUnban, 
+  updateStateUnban,
   getListUnban,
-  cancelUnban} = require('../services/phone-number.service');
+  cancelUnban } = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -30,6 +30,8 @@ const { HTTP_RESPONSE } = require('../enum/http.enum');
 const { responseMeta } = require('../../config/meta.config');
 const { encryptMobileDevice } = require('../utils/encrypt');
 const { clientRedis } = require('../../config/redis.config');
+const { csbClient } = require('../../config/elasticsearch.config');
+const { ES_PHONE_NUMBERS } = require('../constant/env');
 
 router.get('/reports', [checkJWTToken], async (req, res) => {
   try {
@@ -49,7 +51,7 @@ router.get('/reports', [checkJWTToken], async (req, res) => {
     return res.send(
       responsePresenter(
         null,
-        responseMeta(HTTP_RESPONSE[String(error.status)], error.status,error.message )
+        responseMeta(HTTP_RESPONSE[String(error.status)], error.status, error.message)
       )
     );
   }
@@ -423,10 +425,10 @@ router.patch('/:phoneNumber/unban', [checkAuthorization], async (req, res) => {
       );
   }
 })
-router.get('/unban', [checkJWTToken,validateQueryLimitPage], async (req, res) => {
+router.get('/unban', [checkJWTToken, validateQueryLimitPage], async (req, res) => {
   try {
-    const {page, limit}=req;
-    const result =await getListUnban(page,limit);
+    const { page, limit } = req;
+    const result = await getListUnban(page, limit);
     return res.status(200).send(
       responsePresenter(
         result,
@@ -451,9 +453,9 @@ router.get('/unban', [checkJWTToken,validateQueryLimitPage], async (req, res) =>
       );
   }
 })
-router.patch('/:phoneNumber/unban/cancel',[checkJWTToken],async (req,res)=>{
-  try{
-    const {phoneNumber}=req.params;
+router.patch('/:phoneNumber/unban/cancel', [checkJWTToken], async (req, res) => {
+  try {
+    const { phoneNumber } = req.params;
     getCodeAndSevenNumber(phoneNumber);
     return res.send(
       responsePresenter(
@@ -462,7 +464,7 @@ router.patch('/:phoneNumber/unban/cancel',[checkJWTToken],async (req,res)=>{
       )
     )
   }
-  catch(error){
+  catch (error) {
     let { message, status } = error;
     if (!status) {
       message = "";
@@ -478,5 +480,17 @@ router.patch('/:phoneNumber/unban/cancel',[checkJWTToken],async (req,res)=>{
         )
       );
   }
+})
+router.get('/:phoneNumber/test', async (req, res) => {
+  const {phoneNumber}=req.params;
+  return res.send(await csbClient.search({
+    index:ES_PHONE_NUMBERS,
+    query:{
+      match:{
+        status:"potential-spammer"
+      }
+    },
+    size:10
+  }))
 })
 module.exports = router;
