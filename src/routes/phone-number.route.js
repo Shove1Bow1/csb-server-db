@@ -19,7 +19,8 @@ const { findAllReports,
   updateStatusFromAdmin,
   updateStateUnban,
   getListUnban,
-  cancelUnban } = require('../services/phone-number.service');
+  cancelUnban, 
+  suggestSearchingES} = require('../services/phone-number.service');
 const { getMobileCodeId } = require('../services/mobile-code.service');
 const { responsePresenter } = require('../../config/reponse.config');
 const { validateQueryLimitPage,
@@ -229,7 +230,7 @@ router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res)
     if (!phoneNumber || phoneNumber.length > 10) {
       throw { message: 'phone number not exist', status: '404' };
     }
-    const result = await suggestSearching(phoneNumber, type ? type : 1);
+    const result = await suggestSearchingES(phoneNumber, type ? type : 1);
     return res.send(
       responsePresenter(
         result,
@@ -483,14 +484,6 @@ router.patch('/:phoneNumber/unban/cancel', [checkJWTToken], async (req, res) => 
 })
 router.get('/:phoneNumber/test', async (req, res) => {
   const {phoneNumber}=req.params;
-  return res.send(await csbClient.search({
-    index:ES_PHONE_NUMBERS,
-    query:{
-      match:{
-        status:"potential-spammer"
-      }
-    },
-    size:10
-  }))
+  return res.send(suggestSearchingES(phoneNumber,1))
 })
 module.exports = router;

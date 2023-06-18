@@ -21,6 +21,8 @@ const cron = require("node-cron");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
 const { reportWithSlack, requestUnbanNumberWithSlack } = require("../../config/slack.config");
+const { csbClient } = require("../../config/elasticsearch.config");
+const { ES_PHONE_NUMBERS } = require("../constant/env");
 async function findAllReports(phoneNumber, code) {
   try {
     const result = await PhoneNumbersSchema.find({
@@ -327,7 +329,7 @@ async function trackingPhoneCalls(phoneNumber, status) {
   }).select("-reportList -createdAt -updatedAt");
   if (status === LIST_STATUS[1]) {
     if (phoneNumberData) {
-      const callTrackerLength=phoneNumberData.callTracker.length-1;
+      const callTrackerLength = phoneNumberData.callTracker.length - 1;
       phoneNumberData.callTracker[callTrackerLength].numberOfCall++;
       if (phoneNumberData.callTracker[callTrackerLength].numberOfCall >= CALLS_IN_MONTH) {
         phoneNumberData.status = LIST_STATUS[2];
@@ -499,7 +501,7 @@ async function updateStatusFromAdmin(phoneNumber) {
       return 0;
     }
   }
-  catch(error){
+  catch (error) {
     throw error
   }
 }
@@ -534,6 +536,110 @@ async function cancelUnban(phoneNumber) {
   }
   return 0;
 }
+
+async function suggestSearchingES(phoneNumber, type) {
+  let result = [];
+  if (type === "1") {
+    result = await csbClient.search({
+      index: ES_PHONE_NUMBERS,
+      query: {
+        bool: {
+          must: [
+            {
+              wildcard: {
+                phoneNumber: phoneNumber + "*"
+              }
+            },
+          ]
+        }
+      },
+      size: 10,
+      fields: ["phoneNumber", "status"],
+      "_source": false
+    })
+  }
+  if (type === "4") {
+    result = await csbClient.search({
+      index: ES_PHONE_NUMBERS,
+      query: {
+        bool: {
+          must: [
+            {
+              wildcard: {
+                phoneNumber: phoneNumber + "*"
+              }
+            },
+            {
+              match: {
+                status: LIST_STATUS[1]
+              }
+            }
+          ]
+        }
+      },
+      size: 10,
+      fields: ["phoneNumber", "status"],
+      "_source": false
+    })
+  }
+  if (type === "5") {
+    result = await PhoneNumbersSchema.find({
+      phoneNumber: new RegExp(phoneNumber),
+      status: LIST_STATUS[2]
+    }).select("-reportList -callTracker")
+  }
+  if (type === "3") {
+    result = await csbClient.search({
+      index: ES_PHONE_NUMBERS,
+      query: {
+        bool: {
+          must: [
+            {
+              wildcard: {
+                phoneNumber: phoneNumber + "*"
+              }
+            },
+          ]
+        }
+      },
+      size: 10,
+      fields: ["phoneNumber", "status", "reportList", "callTracker", "wasUpdated", "stateUnban"],
+      "_source": false
+    })
+  }
+  if(type==="2") {
+    result = await csbClient.search({
+      index: ES_PHONE_NUMBERS,
+      query: {
+        bool: {
+          must: [
+            {
+              wildcard: {
+                phoneNumber: phoneNumber + "*"
+              }
+            },
+            {
+              match: {
+                status: LIST_STATUS[2]
+              }
+            }
+          ]
+        }
+      },
+      size: 10,
+      fields: ["phoneNumber", "status"],
+      "_source": false
+    })
+  }
+  const listSuggest = result ? result.hits.hits.map((phone) => {
+    return ({
+      phoneNumber: phone.fields.phoneNumber[0],
+      status: phone.fields.status[0],
+    })
+  }) : [];
+  return listSuggest ? listSuggest : [];
+}
+
 module.exports = {
   getReportInFiveMonth,
   getReportsByMonthSer,
@@ -551,5 +657,6 @@ module.exports = {
   updateStatusFromAdmin,
   updateStateUnban,
   getListUnban,
-  cancelUnban
+  cancelUnban,
+  suggestSearchingES
 };
