@@ -283,7 +283,7 @@ async function setQueueReport(
   }
 }
 
-async function rejectReport(phoneNumber) {}
+async function rejectReport(phoneNumber) { }
 
 async function trackingSearch(phoneNumber) {
   const time = new Date();
@@ -309,20 +309,22 @@ async function trackingSearch(phoneNumber) {
   }
 }
 
-async function detailPhone(id) {
+async function detailPhone(id, type) {
   const phoneNumber = await PhoneNumbersSchema.findOne({
     _id: id,
   });
-
-  trackingSearch(phoneNumber);
-  updateSearch();
   phoneNumber.reportList.reverse();
+  if (phoneNumber && !type) {
+    trackingSearch(phoneNumber);
+    updateSearch();
+  }
   const mobileCode = await MobileCodesSchema.findOne({
     _id: phoneNumber.mobileCodeId,
   });
   const provider = await ProvidersSchema.findById({
     _id: mobileCode.providerId,
   }).select("-_id");
+
   return phoneNumber
     ? { ...phoneNumber._doc, ...provider._doc, code: mobileCode.code }
     : {};
@@ -338,7 +340,7 @@ async function top10SpammerRecentReports() {
   return result;
 }
 
-async function recentCreatedPhoneNumbersIn7Days() {}
+async function recentCreatedPhoneNumbersIn7Days() { }
 
 async function getCreatedPhoneNumbersIn6Month(month, year) {
   const result = await getTotalNumbersCreateIn6Month(month, year);
@@ -495,7 +497,7 @@ async function trackingOfflineCalls(offlineCalls, deviceId) {
       if (
         resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker &&
         resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker ===
-          curMonthYear
+        curMonthYear
       ) {
         const nowTrackingCall =
           resultPhoneInfo.callTracker[lengthCalls - 1].numberOfCall + count;
