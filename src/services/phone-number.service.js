@@ -554,7 +554,7 @@ async function suggestSearchingES(phoneNumber, type) {
         }
       },
       size: 10,
-      fields: ["phoneNumber", "status"],
+      fields: ["phoneNumber", "status","_id"],
       "_source": false
     })
   }
@@ -578,15 +578,33 @@ async function suggestSearchingES(phoneNumber, type) {
         }
       },
       size: 10,
-      fields: ["phoneNumber", "status"],
+      fields: ["phoneNumber", "status","_id"],
       "_source": false
     })
   }
   if (type === "5") {
-    result = await PhoneNumbersSchema.find({
-      phoneNumber: new RegExp(phoneNumber),
-      status: LIST_STATUS[2]
-    }).select("-reportList -callTracker")
+    result = await csbClient.search({
+      index: ES_PHONE_NUMBERS,
+      query: {
+        bool: {
+          must: [
+            {
+              wildcard: {
+                phoneNumber: phoneNumber + "*"
+              }
+            },
+            {
+              match: {
+                status: LIST_STATUS[2]
+              }
+            }
+          ]
+        }
+      },
+      size: 10,
+      fields: ["phoneNumber", "status","_id","wasUpdated", "stateUnban"],
+      "_source": false
+    })
   }
   if (type === "3") {
     result = await csbClient.search({
@@ -602,8 +620,8 @@ async function suggestSearchingES(phoneNumber, type) {
           ]
         }
       },
-      size: 10,
-      fields: ["phoneNumber", "status", "reportList", "callTracker", "wasUpdated", "stateUnban"],
+      size: 50,
+      fields: ["phoneNumber", "status", "reportList", "callTracker", "wasUpdated", "stateUnban","_id"],
       "_source": false
     })
   }
@@ -627,14 +645,23 @@ async function suggestSearchingES(phoneNumber, type) {
         }
       },
       size: 10,
-      fields: ["phoneNumber", "status"],
+      fields: ["phoneNumber", "status","_id"],
       "_source": false
     })
   }
   const listSuggest = result ? result.hits.hits.map((phone) => {
+    let temp={}
+    if(type==="5"){
+      temp={
+        stateUnban:phone.fields.stateUnban? phone.fields.stateUnban[0]:false,
+        wasUpdated: phone.fields.wasUpdated? phone.fields.wasUpdated[0]:false,
+      }
+    }
     return ({
       phoneNumber: phone.fields.phoneNumber[0],
       status: phone.fields.status[0],
+      _id: phone.fields._id[0],
+      ...temp
     })
   }) : [];
   return listSuggest ? listSuggest : [];
