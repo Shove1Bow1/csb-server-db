@@ -20,7 +20,11 @@ const { ProvidersSchema } = require("../entities/providers.entity");
 const cron = require("node-cron");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { getMobileCode, getMobileCodeId } = require("./mobile-code.service");
-const { reportWithSlack, requestUnbanNumberWithSlack } = require("../../config/slack.config");
+const {
+  reportWithSlack,
+  requestUnbanNumberWithSlack,
+} = require("../../config/slack.config");
+const { updateSearch } = require("../../config/firebase.config");
 async function findAllReports(phoneNumber, code) {
   try {
     const result = await PhoneNumbersSchema.find({
@@ -118,7 +122,6 @@ async function createReport({
       "reportList.deviceCodeId": deviceId,
     });
     if (!deviceExist[0]) {
-      reportWithSlack(phoneNumber);
       return await PhoneNumbersSchema.updateOne(
         {
           phoneNumber,
@@ -137,6 +140,7 @@ async function createReport({
         }
       );
     }
+
     throw {
       message: "This device already reported this number - conflict happen",
       status: "409",
@@ -194,25 +198,30 @@ async function suggestSearching(phoneNumber, type) {
     );
   }
   if (type === "4") {
-    result = await PhoneNumbersSchema.find(
-      {
-        phoneNumber: new RegExp(phoneNumber),
-        status: LIST_STATUS[1]
-      }
-    ).select("-reportList -callTracker")
+    result = await PhoneNumbersSchema.find({
+      phoneNumber: new RegExp(phoneNumber),
+      status: LIST_STATUS[1],
+    }).select("-reportList -callTracker");
   }
   if (type === "5") {
     result = await PhoneNumbersSchema.find({
       phoneNumber: new RegExp(phoneNumber),
-      status: LIST_STATUS[2]
-    }).select("-reportList -callTracker")
+      status: LIST_STATUS[2],
+    }).select("-reportList -callTracker");
   }
   if (type === "3") {
     result = await PhoneNumbersSchema.find(
       {
         phoneNumber: new RegExp(phoneNumber, "i"),
       },
-      { phoneNumber: 1, status: 1, reportList: 1, callTracker: 1, wasUpdated: 1, stateUnban: 1 },
+      {
+        phoneNumber: 1,
+        status: 1,
+        reportList: 1,
+        callTracker: 1,
+        wasUpdated: 1,
+        stateUnban: 1,
+      },
       { limit: 50 }
     );
   } else {
@@ -274,12 +283,39 @@ async function setQueueReport(
   }
 }
 
-async function rejectReport(phoneNumber) { }
+async function rejectReport(phoneNumber) {}
+
+async function trackingSearch(phoneNumber) {
+  const time = new Date();
+  const date = time.getDate();
+  const month = time.getMonth() + 1;
+  const curMonthYear = date + "-" + month + "-" + time.getFullYear();
+  const index = phoneNumber.searchTracked.findIndex(
+    (value) => value.dateSearch === curMonthYear
+  );
+
+  if (index < 0) {
+    phoneNumber.searchTracked.push({
+      dateSearch: curMonthYear,
+      numberSearch: 1,
+    });
+    phoneNumber.save();
+  } else {
+    phoneNumber.searchTracked[index] = {
+      dateSearch: phoneNumber.searchTracked[index].dateSearch,
+      numberSearch: phoneNumber.searchTracked[index].numberSearch + 1,
+    };
+    phoneNumber.save();
+  }
+}
 
 async function detailPhone(id) {
   const phoneNumber = await PhoneNumbersSchema.findOne({
     _id: id,
   });
+
+  trackingSearch(phoneNumber);
+  updateSearch();
   phoneNumber.reportList.reverse();
   const mobileCode = await MobileCodesSchema.findOne({
     _id: phoneNumber.mobileCodeId,
@@ -302,7 +338,7 @@ async function top10SpammerRecentReports() {
   return result;
 }
 
-async function recentCreatedPhoneNumbersIn7Days() { }
+async function recentCreatedPhoneNumbersIn7Days() {}
 
 async function getCreatedPhoneNumbersIn6Month(month, year) {
   const result = await getTotalNumbersCreateIn6Month(month, year);
@@ -327,9 +363,12 @@ async function trackingPhoneCalls(phoneNumber, status) {
   }).select("-reportList -createdAt -updatedAt");
   if (status === LIST_STATUS[1]) {
     if (phoneNumberData) {
-      const callTrackerLength=phoneNumberData.callTracker.length-1;
+      const callTrackerLength = phoneNumberData.callTracker.length - 1;
       phoneNumberData.callTracker[callTrackerLength].numberOfCall++;
-      if (phoneNumberData.callTracker[callTrackerLength].numberOfCall >= CALLS_IN_MONTH) {
+      if (
+        phoneNumberData.callTracker[callTrackerLength].numberOfCall >=
+        CALLS_IN_MONTH
+      ) {
         phoneNumberData.status = LIST_STATUS[2];
       }
       await PhoneNumbersSchema.updateOne(
@@ -444,73 +483,89 @@ async function trackingPhoneCalls(phoneNumber, status) {
 
 async function trackingOfflineCalls(offlineCalls, deviceId) {
   const temp = new Date();
-  const curMonthYear = (temp.getMonth() + 1) + '/' + temp.getFullYear();
+  const curMonthYear = temp.getMonth() + 1 + "/" + temp.getFullYear();
   for (let index = 0; index < offlineCalls.length; index++) {
     const { phone, count } = offlineCalls[index];
     const resultPhoneInfo = await PhoneNumbersSchema.findOne({
       phoneNumber: phone,
       $or: [{ status: LIST_STATUS[1] }, { status: LIST_STATUS[2] }],
-    }).select('-reportList');
+    }).select("-reportList");
     if (resultPhoneInfo) {
       const lengthCalls = resultPhoneInfo.callTracker.length;
-      if (resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker && resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker === curMonthYear) {
-        const nowTrackingCall = resultPhoneInfo.callTracker[lengthCalls - 1].numberOfCall + count;
+      if (
+        resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker &&
+        resultPhoneInfo.callTracker[lengthCalls - 1]?.dateTracker ===
+          curMonthYear
+      ) {
+        const nowTrackingCall =
+          resultPhoneInfo.callTracker[lengthCalls - 1].numberOfCall + count;
         let status = resultPhoneInfo.status;
-        if (nowTrackingCall < CALLS_IN_MONTH && resultPhoneInfo.reportList?.length < POTENTIAL_SPAMMER)
+        if (
+          nowTrackingCall < CALLS_IN_MONTH &&
+          resultPhoneInfo.reportList?.length < POTENTIAL_SPAMMER
+        )
           status = LIST_STATUS[1];
-        else
-          status = LIST_STATUS[2];
-        await PhoneNumbersSchema.updateOne({
-          phoneNumber: phone,
-          "callTracker.dateTracker": curMonthYear,
-        }, { $inc: { "callTracker.$.numberOfCall": Number(count) }, status })
-      }
-      else {
-        await PhoneNumbersSchema.updateOne({
-          phoneNumber: phone,
-        }, {
-          $push: {
-            callTracker: {
-              dateTracker: curMonthYear,
-              numberOfCall: count
-            }
+        else status = LIST_STATUS[2];
+        await PhoneNumbersSchema.updateOne(
+          {
+            phoneNumber: phone,
+            "callTracker.dateTracker": curMonthYear,
+          },
+          { $inc: { "callTracker.$.numberOfCall": Number(count) }, status }
+        );
+      } else {
+        await PhoneNumbersSchema.updateOne(
+          {
+            phoneNumber: phone,
+          },
+          {
+            $push: {
+              callTracker: {
+                dateTracker: curMonthYear,
+                numberOfCall: count,
+              },
+            },
           }
-        })
+        );
       }
-    }
-    else continue;
+    } else continue;
   }
 }
 
 async function updateStatusFromAdmin(phoneNumber) {
   try {
-    const result = await PhoneNumbersSchema.updateOne({
-      phoneNumber,
-      status: LIST_STATUS[2],
-      wasUpdated: false,
-      stateUnban: true,
-    }, {
-      status: LIST_STATUS[1], wasUpdated: true,
-    })
+    const result = await PhoneNumbersSchema.updateOne(
+      {
+        phoneNumber,
+        status: LIST_STATUS[2],
+        wasUpdated: false,
+        stateUnban: true,
+      },
+      {
+        status: LIST_STATUS[1],
+        wasUpdated: true,
+      }
+    );
     if (result.modifiedCount) {
       return 1;
-    }
-    else {
+    } else {
       return 0;
     }
-  }
-  catch(error){
-    throw error
+  } catch (error) {
+    throw error;
   }
 }
 
 async function updateStateUnban(phoneNumber, stateUnban, reason) {
-  const result = await PhoneNumbersSchema.updateOne({
-    phoneNumber,
-    status: LIST_STATUS[2],
-    wasUpdated: false,
-    stateUnban: false
-  }, { stateUnban });
+  const result = await PhoneNumbersSchema.updateOne(
+    {
+      phoneNumber,
+      status: LIST_STATUS[2],
+      wasUpdated: false,
+      stateUnban: false,
+    },
+    { stateUnban }
+  );
   if (result.modifiedCount) {
     requestUnbanNumberWithSlack(phoneNumber, reason);
     return 1;
@@ -524,11 +579,14 @@ async function getListUnban(limit, page) {
 }
 
 async function cancelUnban(phoneNumber) {
-  const result = await PhoneNumbersSchema.updateOne({
-    phoneNumber,
-    stateUnban: true,
-    wasUpdated: false
-  }, { stateUnban: false })
+  const result = await PhoneNumbersSchema.updateOne(
+    {
+      phoneNumber,
+      stateUnban: true,
+      wasUpdated: false,
+    },
+    { stateUnban: false }
+  );
   if (result.modifiedCount) {
     return 1;
   }
@@ -551,5 +609,5 @@ module.exports = {
   updateStatusFromAdmin,
   updateStateUnban,
   getListUnban,
-  cancelUnban
+  cancelUnban,
 };
