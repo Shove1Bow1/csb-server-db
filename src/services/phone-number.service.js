@@ -314,7 +314,7 @@ async function detailPhone(id, type) {
     _id: id,
   });
   phoneNumber.reportList.reverse();
-  if (phoneNumber && !type) {
+  if (phoneNumber && !Number(type)) {
     trackingSearch(phoneNumber);
     updateSearch();
   }
