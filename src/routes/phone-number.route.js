@@ -22,12 +22,11 @@ const {
   updateStatusFromAdmin,
   updateStateUnban,
   getListUnban,
-  cancelUnban,
-} = require("../services/phone-number.service");
-const { getMobileCodeId } = require("../services/mobile-code.service");
-const { responsePresenter } = require("../../config/reponse.config");
-const {
-  validateQueryLimitPage,
+  cancelUnban, 
+  suggestSearchingES} = require('../services/phone-number.service');
+const { getMobileCodeId } = require('../services/mobile-code.service');
+const { responsePresenter } = require('../../config/reponse.config');
+const { validateQueryLimitPage,
   validateReportInput,
   validateOfflineCalls,
 } = require("../middlewares/validator.middleware");
@@ -37,6 +36,8 @@ const { responseMeta } = require("../../config/meta.config");
 const { encryptMobileDevice } = require("../utils/encrypt");
 const { clientRedis } = require("../../config/redis.config");
 const { updateThongKe } = require("../../config/firebase.config");
+const { csbClient } = require('../../config/elasticsearch.config');
+const { ES_PHONE_NUMBERS } = require('../constant/env');
 
 router.get("/reports", [checkJWTToken], async (req, res) => {
   try {
@@ -237,14 +238,15 @@ router.get(
     try {
       const result = await top10SpammerRecentReports();
       return res.send(responsePresenter(result, responseMeta()));
-    } catch (error) {
+    }
+    catch (error) {
       let { message, status } = error;
       if (!status) {
         message = "";
         status = "500";
       }
       logError(error, "/spammers/top-ten/recent-reports \nmethod: GET");
-      throw res
+      return res
         .status(Number(error.status))
         .send(
           responsePresenter(
@@ -254,36 +256,36 @@ router.get(
         );
     }
   }
-);
-router.get(
-  "/:phoneNumber/suggest/:type",
-  [checkAuthorization],
-  async (req, res) => {
-    try {
-      const { phoneNumber, type } = req.params;
-      if (!phoneNumber || phoneNumber.length > 10) {
-        throw { message: "phone number not exist", status: "404" };
-      }
-      const result = await suggestSearching(phoneNumber, type ? type : 1);
-      return res.send(responsePresenter(result, responseMeta()));
-    } catch (error) {
-      let { message, status } = error;
-      if (!status) {
-        message = "";
-        status = "500";
-      }
-      logError(error, "/:phoneNumber/suggest/:type \nmethod: GET");
-      return res
-        .status(Number(status))
-        .send(
-          responsePresenter(
-            null,
-            responseMeta(HTTP_RESPONSE[status], status, message)
-          )
-        );
+)
+router.get('/:phoneNumber/suggest/:type', [checkAuthorization], async (req, res) => {
+  try {
+    const { phoneNumber, type } = req.params;
+    if (!phoneNumber || phoneNumber.length > 10) {
+      throw { message: 'phone number not exist', status: '404' };
     }
+    const result = await suggestSearchingES(phoneNumber, type ? type : 1);
+    return res.send(
+      responsePresenter(
+        result,
+        responseMeta()
+      )
+    );
   }
-);
+  catch (error) {
+    let { message, status } = error;
+    if (!status) {
+      message = '';
+      status = '500';
+    }
+    logError(error, '/:phoneNumber/suggest/:type \nmethod: GET');
+    return res.status(Number(status)).send(
+      responsePresenter(
+        null,
+        responseMeta(HTTP_RESPONSE[status], status, message)
+      )
+    )
+  }
+})
 
 router.get(
   "/:phoneNumber/incoming-call",
