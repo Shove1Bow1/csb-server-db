@@ -683,7 +683,7 @@ async function suggestSearchingES(phoneNumber, type) {
       },
       size: 50,
       fields: ["phoneNumber", "status", "reportList", "callTracker", "wasUpdated", "stateUnban","_id"],
-      "_source": false
+      _source:true
     })
   }
   if(type==="2") {
@@ -716,6 +716,14 @@ async function suggestSearchingES(phoneNumber, type) {
       temp={
         stateUnban:phone.fields.stateUnban? phone.fields.stateUnban[0]:false,
         wasUpdated: phone.fields.wasUpdated? phone.fields.wasUpdated[0]:false,
+      }
+    }
+    if(type==="3"){
+      temp={
+        reportList:phone._source.reportList? phone._source.reportList:[],
+        stateUnban:phone._source.stateUnban? phone_source.stateUnban:false,
+        wasUpdated: phone._source.wasUpdated? phone_source.wasUpdated:false,
+        callTracker: phone._source.callTracker? phone_source.callTracker:[],
       }
     }
     return ({
