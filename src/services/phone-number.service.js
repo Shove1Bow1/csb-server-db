@@ -600,6 +600,10 @@ async function cancelUnban(phoneNumber) {
 
 async function suggestSearchingES(phoneNumber, type) {
   let result = [];
+  let valueCheck=phoneNumber+'*';
+  if(phoneNumber.length===10){
+    valueCheck=phoneNumber;
+  }
   if (type === "1") {
     result = await csbClient.search({
       index: ES_PHONE_NUMBERS,
@@ -608,7 +612,7 @@ async function suggestSearchingES(phoneNumber, type) {
           must: [
             {
               wildcard: {
-                phoneNumber: phoneNumber + "*"
+                phoneNumber: valueCheck
               }
             },
           ]
@@ -627,7 +631,7 @@ async function suggestSearchingES(phoneNumber, type) {
           must: [
             {
               wildcard: {
-                phoneNumber: phoneNumber + "*"
+                phoneNumber: valueCheck
               }
             },
             {
@@ -651,7 +655,7 @@ async function suggestSearchingES(phoneNumber, type) {
           must: [
             {
               wildcard: {
-                phoneNumber: phoneNumber + "*"
+                phoneNumber: valueCheck
               }
             },
             {
@@ -675,7 +679,7 @@ async function suggestSearchingES(phoneNumber, type) {
           must: [
             {
               wildcard: {
-                phoneNumber: phoneNumber + "*"
+                phoneNumber: valueCheck
               }
             },
           ]
@@ -694,7 +698,7 @@ async function suggestSearchingES(phoneNumber, type) {
           must: [
             {
               wildcard: {
-                phoneNumber: phoneNumber + "*"
+                phoneNumber: valueCheck
               }
             },
             {
@@ -721,10 +725,11 @@ async function suggestSearchingES(phoneNumber, type) {
     if(type==="3"){
       temp={
         reportList:phone._source.reportList? phone._source.reportList:[],
-        stateUnban:phone._source.stateUnban? phone_source.stateUnban:false,
-        wasUpdated: phone._source.wasUpdated? phone_source.wasUpdated:false,
-        callTracker: phone._source.callTracker? phone_source.callTracker:[],
+        stateUnban:phone._source.stateUnban? phone._source.stateUnban:false,
+        wasUpdated: phone._source.wasUpdated? phone._source.wasUpdated:false,
+        callTracker: phone._source.callTracker? phone._source.callTracker:[],
       }
+      
     }
     return ({
       phoneNumber: phone.fields.phoneNumber[0],
